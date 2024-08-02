@@ -1,10 +1,11 @@
 // import { useAuthenticator } from "@aws-amplify/ui-react";
-import { Flex, Layout, Menu, theme } from "antd";
+import { Dropdown, Flex, Layout, Menu, Space, theme } from "antd";
 
-import { Outlet, useRouterState } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
 
 import { ItemType, MenuItemType } from "antd/es/menu/interface";
 import { PropsWithChildren } from "react";
+import { DownOutlined, LogoutOutlined } from "@ant-design/icons";
 
 const { Header, Content, Sider } = Layout;
 
@@ -39,7 +40,7 @@ export const AdminLayout = ({
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Header style={{ padding: 0 }}>
+      <Header className="p-0 pr-6">
         <Flex
           justify="space-between"
           align="center"
@@ -50,7 +51,26 @@ export const AdminLayout = ({
           <div className="text-md text-white p-10 w-52">
             <img src="/logo-white.png" alt="logo" />
           </div>
-          <Menu
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "logout",
+                  label: "Logout",
+                  icon: <LogoutOutlined />,
+                  onClick: signOut,
+                },
+              ],
+            }}
+          >
+            <a onClick={(e) => e.preventDefault()}>
+              <Space style={{ color: "white" }}>
+                {user?.username}
+                <DownOutlined />
+              </Space>
+            </a>
+          </Dropdown>
+          {/* <Menu
             theme="dark"
             mode="horizontal"
             items={[
@@ -68,7 +88,7 @@ export const AdminLayout = ({
               },
             ]}
             style={{ width: 300 }}
-          />
+          /> */}
         </Flex>
       </Header>
       <Layout>
