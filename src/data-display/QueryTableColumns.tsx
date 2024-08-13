@@ -5,11 +5,17 @@ type StringColumnType<RecordType> = ColumnType<RecordType> & {
 };
 type NumberColumnType<RecordType> = ColumnType<RecordType> & {
   type: "number";
+  decimals?: number;
+};
+type DateColumnType<RecordType> = ColumnType<RecordType> & {
+  type: "date";
+  format?: number;
 };
 
 export type TableColumnType<RecordType> =
   | StringColumnType<RecordType>
-  | NumberColumnType<RecordType>;
+  | NumberColumnType<RecordType>
+  | DateColumnType<RecordType>;
 
 export type InitialTableColumn<RecordType> =
   | ColumnGroupType<RecordType>
@@ -42,5 +48,11 @@ export const columnTypeForTableColumnType = <RecordType,>(
       return { render: (value) => `number: ${value}`, ...defaultProps, ...c };
     case "string":
       return { ...defaultProps, ...c };
+    case "date":
+      return {
+        render: (value) => `date:${value} ${c.format}`,
+        ...defaultProps,
+        ...c,
+      };
   }
 };

@@ -1,29 +1,22 @@
-import { ISerializable } from "@jakub.knejzlik/ts-query";
+import { useQuery } from "@tanstack/react-query";
 import { Alert, Select, SelectProps } from "antd";
-import { useRunQuery } from "../hooks/RunQuery";
 
-interface QuerySelectProps<T = unknown> extends SelectProps<T> {
-  query: ISerializable;
+type OptionType = { value: string; label: React.ReactNode };
+
+interface QuerySelectProps<T extends OptionType[]> extends SelectProps {
+  query: Parameters<typeof useQuery<T>>[0];
 }
 
-export const QuerySelect = ({ query, ...props }: QuerySelectProps) => {
-  const { data, isLoading, error } = useRunQuery({
-    query,
-  });
+export const QuerySelect = <T extends OptionType[]>({
+  query,
+  ...props
+}: QuerySelectProps<T>) => {
+  const { data, isLoading, error } = useQuery(query);
 
   return (
     <>
       {error && <Alert message={error.message} type="error" />}
-      <Select
-        loading={isLoading}
-        options={
-          data?.results?.map((x) => ({
-            label: `${x["label"]}`,
-            value: `${x["value"]}`,
-          })) ?? []
-        }
-        {...props}
-      />
+      <Select loading={isLoading} options={data} {...props} />
     </>
   );
 };

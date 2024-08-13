@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { Table, TableProps } from "antd";
+import { Alert, Button, Space, Table, TableProps } from "antd";
 import { AnyObject } from "antd/es/_util/type";
 import { columnTypeForTableColumnType, TableColumn } from "./QueryTableColumns";
+import { ReloadOutlined } from "@ant-design/icons";
 
 type TableColumns<RecordType> = TableColumn<RecordType>;
 
@@ -16,13 +17,29 @@ export const QueryTable = <T extends AnyObject>({
   columns,
   ...props
 }: QueryTableProps<T>) => {
-  const { data, isLoading, error } = useQuery(query);
+  const { data, isFetching, error, refetch } = useQuery(query);
   return (
     <Table
       dataSource={data}
-      locale={{ emptyText: error?.message }}
-      loading={isLoading}
-      rowKey={"id"}
+      locale={{
+        emptyText: error && (
+          <Alert
+            type="error"
+            message={
+              <Space>
+                {error?.message}
+                <Button
+                  size="small"
+                  icon={<ReloadOutlined />}
+                  onClick={() => refetch()}
+                />
+              </Space>
+            }
+          />
+        ),
+      }}
+      loading={isFetching}
+      rowKey={(row) => `${row["id"]}`}
       columns={columns.map((col) => {
         return columnTypeForTableColumnType<T>(col);
       })}
