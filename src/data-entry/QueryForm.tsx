@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { TRPCError } from "@trpc/server";
-import { Button, Form, FormProps, message } from "antd";
+import { Button, Form, FormProps, Input, message } from "antd";
 import { AnyObject } from "antd/es/_util/type";
 import { PropsWithChildren } from "react";
 
@@ -20,6 +20,7 @@ export const QueryForm = <T extends AnyObject>({
 
   return (
     <Form
+      layout="vertical"
       onFinish={async (values) => {
         try {
           await _mutation.mutateAsync(values);
