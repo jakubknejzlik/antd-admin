@@ -1,6 +1,6 @@
 {
   "devDependencies": {
     "@ant-design/icons": "^5.4.0",
-    "antd": "^5.19.4"
+    "antd": "^5.20.1"
   }
 }
