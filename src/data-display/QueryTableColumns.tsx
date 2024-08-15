@@ -1,15 +1,18 @@
 import { ColumnGroupType, ColumnType } from "antd/es/table";
+import { formatDate } from "../functions/date";
+import { formatNumber } from "../functions/numeral";
+import { QueryTableState } from "./QueryTable";
 
 type StringColumnType<RecordType> = ColumnType<RecordType> & {
   type: "string";
 };
 type NumberColumnType<RecordType> = ColumnType<RecordType> & {
   type: "number";
-  decimals?: number;
+  format?: string;
 };
 type DateColumnType<RecordType> = ColumnType<RecordType> & {
   type: "date";
-  format?: number;
+  format?: string;
 };
 
 export type TableColumnType<RecordType> =
@@ -26,31 +29,38 @@ export type TableColumn<RecordType> =
   | TableColumnType<RecordType>;
 
 export const columnTypeForTableColumnType = <RecordType,>(
-  c: TableColumn<RecordType>
+  c: TableColumn<RecordType>,
+  state: QueryTableState
 ): InitialTableColumn<RecordType> => {
   if ("children" in c) {
     const { children, ...rest } = c;
     return {
-      children: children.map((c) => columnTypeForTableColumnType(c)),
+      children: children.map((c) => columnTypeForTableColumnType(c, state)),
       ...rest,
     };
   }
-
-  if (!("type" in c)) {
-    return c;
-  }
-
   const defaultProps: Partial<ColumnType<RecordType>> = {
     sorter: true,
+    sortOrder: state.sorter.find((s) => s.field === c.dataIndex)?.order,
+    showSorterTooltip: false,
   };
+
+  if (!("type" in c)) {
+    return { ...defaultProps, ...c };
+  }
+
   switch (c.type) {
     case "number":
-      return { render: (value) => `number: ${value}`, ...defaultProps, ...c };
+      return {
+        render: (value) => formatNumber(value, c.format),
+        ...defaultProps,
+        ...c,
+      };
     case "string":
       return { ...defaultProps, ...c };
     case "date":
       return {
-        render: (value) => `date:${value} ${c.format}`,
+        render: (value) => formatDate(value, c.format),
         ...defaultProps,
         ...c,
       };

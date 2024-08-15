@@ -1,6 +1,12 @@
 {
   "devDependencies": {
     "@ant-design/icons": "^5.4.0",
-    "antd": "^5.20.1"
+    "@types/numeral": "^2.0.5",
+    "antd": "^5.20.1",
+    "vitest": "^2.0.5"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.12",
+    "numeral": "^2.0.6"
   }
 }

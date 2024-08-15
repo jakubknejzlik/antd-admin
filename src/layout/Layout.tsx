@@ -25,13 +25,7 @@ export const AdminLayout = ({
     token: { colorBgContainer },
   } = theme.useToken();
 
-  // const { user, signOut } = useAuthenticator();
-  // const matches = useMatches();
-  // const matchRoute = useMatchRoute();
-
   const { matches } = useRouterState();
-  // const pathNames = matches.map((match) => match.routeId);
-  // const breadcrumbs: string[] = condensePathNames(pathNames);
 
   const lastMatch = matches[matches.length - 1];
   const openKeys = (lastMatch ? [lastMatch] : []).map(
@@ -70,25 +64,6 @@ export const AdminLayout = ({
               </Space>
             </a>
           </Dropdown>
-          {/* <Menu
-            theme="dark"
-            mode="horizontal"
-            items={[
-              {
-                key: "account",
-                label: user?.username,
-                children: [
-                  {
-                    key: "logout",
-                    label: "Logout",
-                    danger: true,
-                    onClick: signOut,
-                  },
-                ],
-              },
-            ]}
-            style={{ width: 300 }}
-          /> */}
         </Flex>
       </Header>
       <Layout>
