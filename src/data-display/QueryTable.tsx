@@ -9,9 +9,9 @@ import {
   TableProps,
 } from "antd";
 import { AnyObject } from "antd/es/_util/type";
-import { FilterValue } from "antd/es/table/interface";
 import { useState } from "react";
 import { columnTypeForTableColumnType, TableColumn } from "./QueryTableColumns";
+import { FilterValue } from "antd/es/table/interface";
 
 type TableColumns<RecordType> = TableColumn<RecordType>;
 
