@@ -1,10 +1,9 @@
 import { ColumnGroupType, ColumnType } from "antd/es/table";
 import { formatDate } from "../functions/date";
 import { formatNumber } from "../functions/numeral";
+import { ColumnFilterDropdown } from "./filter-dropdowns/ColumnFilterDropdown";
 import { StringColumnFilterDropdown } from "./filter-dropdowns/StringColumnFilterDropdown";
 import { QueryTableState } from "./QueryTable";
-import { Button, Divider, Flex, Space } from "antd";
-import { ColumnFilterDropdown } from "./filter-dropdowns/ColumnFilterDropdown";
 
 type ColumnBase<RecordType> = ColumnType<RecordType> & {
   name: string;
