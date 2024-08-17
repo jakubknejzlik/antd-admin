@@ -7,6 +7,9 @@ export function formatDate(
   date: Dayjs | string | null,
   format: string = "l"
 ): string {
+  if (!date) {
+    return "–";
+  }
   const d = dayjs(date);
   if (!d.isValid()) {
     return "–";

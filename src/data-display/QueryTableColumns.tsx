@@ -19,11 +19,16 @@ type DateColumnType<RecordType> = ColumnBase<RecordType> & {
   type: "date";
   format?: string;
 };
+type DateTimeColumnType<RecordType> = ColumnBase<RecordType> & {
+  type: "datetime";
+  format?: string;
+};
 
 export type TableColumnType<RecordType> =
   | StringColumnType<RecordType>
   | NumberColumnType<RecordType>
-  | DateColumnType<RecordType>;
+  | DateColumnType<RecordType>
+  | DateTimeColumnType<RecordType>;
 
 export type InitialTableColumn<RecordType> =
   | ColumnGroupType<RecordType>
@@ -83,6 +88,12 @@ export const columnTypeForTableColumnType = <RecordType,>(
     case "date":
       return {
         render: (value) => formatDate(value, c.format),
+        ...defaultProps,
+        ...c,
+      };
+    case "datetime":
+      return {
+        render: (value) => formatDate(value, c.format ?? "lll"),
         ...defaultProps,
         ...c,
       };
