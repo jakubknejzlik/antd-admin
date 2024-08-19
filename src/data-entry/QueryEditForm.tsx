@@ -25,22 +25,19 @@ export const QueryEditForm = <T extends AnyObject | null, U extends AnyObject>({
   }
 
   return (
-    <>
-      {data && (
-        <QueryForm
-          disabled={isLoading}
-          loading={isLoading}
-          initialValues={data ?? {}}
-          mutation={{
-            ...mutation,
-            onSuccess: async (...args) => {
-              await queryClient.invalidateQueries({ queryKey: query.queryKey });
-              await mutation.onSuccess?.(...args);
-            },
-          }}
-          {...props}
-        />
-      )}
-    </>
+    <QueryForm
+      key={data ? "loaded" : "loading"}
+      disabled={isLoading || !data}
+      loading={isLoading}
+      initialValues={data ?? {}}
+      mutation={{
+        ...mutation,
+        onSuccess: async (...args) => {
+          await queryClient.invalidateQueries({ queryKey: query.queryKey });
+          await mutation.onSuccess?.(...args);
+        },
+      }}
+      {...props}
+    />
   );
 };

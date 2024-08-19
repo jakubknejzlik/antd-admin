@@ -13,7 +13,7 @@ import { useState } from "react";
 import { columnTypeForTableColumnType, TableColumn } from "./QueryTableColumns";
 import { FilterValue } from "antd/es/table/interface";
 
-type TableColumns<RecordType> = TableColumn<RecordType>;
+export type QueryTableColumns<RecordType> = TableColumn<RecordType>;
 
 type QueryTableSortOrder = "ascend" | "descend";
 
@@ -31,21 +31,26 @@ type TableData<T> = {
   total: number;
 };
 
-type QueryTableProps<T extends AnyObject> = Omit<TableProps<T>, "columns"> & {
-  query: Omit<
-    UseQueryOptions<TableData<T>, Error, TableData<T>, QueryKey>,
-    "queryFn"
-  > & {
-    queryFn: (state: QueryTableState) => Promise<{ items: T[]; total: number }>;
-  };
-  // query: Partial<Parameters<typeof useQuery<T[], Error, T[], K>>[0]>;
-  // queryFn: (context: QueryFunctionContext<K, { aa: string }>) => Promise<T[]>;
-  columns: TableColumns<T>[];
+export type TableQueryQuery<T> = Omit<
+  UseQueryOptions<TableData<T>, Error, TableData<T>, QueryKey>,
+  "queryFn"
+> & {
+  queryFn: (state: QueryTableState) => Promise<TableData<T>>;
+};
+
+export type QueryTableProps<T extends AnyObject> = Omit<
+  TableProps<T>,
+  "columns"
+> & {
+  query: TableQueryQuery<T>;
+  deleteMutationFn?: (item: T) => Promise<unknown>;
+  columns: QueryTableColumns<T>[];
   defaultState?: Partial<QueryTableState>;
 };
 
 export const QueryTable = <T extends AnyObject>({
   query,
+  deleteMutationFn,
   columns,
   defaultState,
   ...props
@@ -92,9 +97,11 @@ export const QueryTable = <T extends AnyObject>({
       }}
       loading={isFetching}
       rowKey={(row) => `${row["id"]}`}
-      columns={columns.map((col) => {
-        return columnTypeForTableColumnType<T>(col, state);
-      })}
+      columns={[
+        ...columns.map((col) => {
+          return columnTypeForTableColumnType<T>(col, state);
+        }),
+      ]}
       onChange={(pagination, filters, sorter) => {
         setState((_state) => ({
           ..._state,
