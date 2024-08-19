@@ -14,7 +14,7 @@ type EntityListPageProps<
 };
 
 export const EntityListPage = ({ config }: EntityListPageProps) => {
-  const { name, rootRoute, table, deleteMutationFn } = config;
+  const { name, rootRoute, table, deleteMutationFn, updateMutationFn } = config;
   return (
     <Page>
       <Card
@@ -32,11 +32,19 @@ export const EntityListPage = ({ config }: EntityListPageProps) => {
             queryFn: table.queryFn,
           }}
           columns={table.columns}
-          buttons={({ id }) => (
-            <Link from={rootRoute.to} to={"./$id" as string} params={{ id }}>
-              <Button icon={<EditOutlined />} />
-            </Link>
-          )}
+          buttons={
+            updateMutationFn
+              ? ({ id }) => (
+                  <Link
+                    from={rootRoute.to}
+                    to={"./$id" as string}
+                    params={{ id }}
+                  >
+                    <Button icon={<EditOutlined />} />
+                  </Link>
+                )
+              : undefined
+          }
           deleteMutationFn={deleteMutationFn}
         />
       </Card>
