@@ -43,7 +43,7 @@ export const AdminLayout = ({
           }}
         >
           <div className="text-md text-white p-10 w-52">
-            <img src="/logo-white.png" alt="logo" />
+            <img src="/logo.png" alt="logo" />
           </div>
           <Dropdown
             menu={{
