@@ -6,18 +6,19 @@ import { Page } from "../layout";
 import { EntityConfig } from "./entity";
 import { EntityField, inputForField } from "./entity-fields";
 import { EntityItem } from "../types/shared";
+import { OptionType } from "../data-entry/QuerySelect";
 
-type EntityUpdatePageProps<T extends EntityItem> = {
+type EntityUpdatePageProps<T extends EntityItem, S extends OptionType> = {
   id: string;
-  config: EntityConfig<T>;
+  config: EntityConfig<T, S>;
   fields: EntityField<T>[];
 };
 
-export const EntityUpdatePage = <T extends EntityItem>({
+export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   id,
   config,
   fields,
-}: EntityUpdatePageProps<T>) => {
+}: EntityUpdatePageProps<T, S>) => {
   const { name, rootRoute, getQueryFn, updateMutationFn } = config;
   const navigate = useNavigate();
   const queryClient = useQueryClient();

@@ -5,14 +5,15 @@ import { Page } from "../layout";
 import { EntityList } from "../pages/EntityList";
 import { EntityConfig } from "./entity";
 import { EntityItem } from "../types/shared";
+import { OptionType } from "../data-entry/QuerySelect";
 
-type EntityListPageProps<T extends EntityItem> = {
-  config: EntityConfig<T>;
+type EntityListPageProps<T extends EntityItem, S extends OptionType> = {
+  config: EntityConfig<T, S>;
 };
 
-export const EntityListPage = <T extends EntityItem>({
+export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   config,
-}: EntityListPageProps<T>) => {
+}: EntityListPageProps<T, S>) => {
   const { name, rootRoute, table, deleteMutationFn, updateMutationFn } = config;
   return (
     <Page>

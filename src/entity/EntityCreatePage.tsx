@@ -5,16 +5,17 @@ import { Page } from "../layout";
 import { EntityConfig } from "./entity";
 import { EntityField, inputForField } from "./entity-fields";
 import { EntityItem } from "../types/shared";
+import { OptionType } from "../data-entry/QuerySelect";
 
-type EntityCreatePageProps<T extends EntityItem> = {
-  config: EntityConfig<T>;
+type EntityCreatePageProps<T extends EntityItem, S extends OptionType> = {
+  config: EntityConfig<T, S>;
   fields: EntityField<T>[];
 };
 
-export const EntityCreatePage = <T extends EntityItem>({
+export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
   config,
   fields,
-}: EntityCreatePageProps<T>) => {
+}: EntityCreatePageProps<T, S>) => {
   const { name, rootRoute, createMutationFn } = config;
   const navigate = useNavigate();
   return (

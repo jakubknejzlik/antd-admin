@@ -1,34 +1,36 @@
 import { DatePicker, Input, InputNumber, Switch } from "antd";
-import { Entity } from "./entity";
 import { EntityItem } from "../types/shared";
+import { Entity } from "./entity";
 
-export type EntityFieldBase = {
+export type EntityFieldBase<T> = {
+  type: unknown;
   name: string;
   label?: string;
-  type: unknown;
+  render?: (value: unknown, item: T, index: number) => React.ReactNode;
 };
-export type EntityStringField = EntityFieldBase & {
+export type EntityStringField<T> = EntityFieldBase<T> & {
   type: "string";
 };
-export type EntityNumberField = EntityFieldBase & {
+export type EntityNumberField<T> = EntityFieldBase<T> & {
   type: "number";
 };
-export type EntityDateField = EntityFieldBase & {
+export type EntityDateField<T> = EntityFieldBase<T> & {
   type: "date";
 };
-export type EntityBooleanField = EntityFieldBase & {
+export type EntityBooleanField<T> = EntityFieldBase<T> & {
   type: "boolean";
 };
-export type EntitySelectField<T extends EntityItem> = EntityFieldBase & {
+export type EntitySelectField<T> = EntityFieldBase<T> & {
   type: "select";
-  targetEntity: () => Entity<T>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  targetEntity: () => Entity<any, any>;
 };
 
 export type EntityField<T extends EntityItem> =
-  | EntityStringField
-  | EntityNumberField
-  | EntityDateField
-  | EntityBooleanField
+  | EntityStringField<T>
+  | EntityNumberField<T>
+  | EntityDateField<T>
+  | EntityBooleanField<T>
   | EntitySelectField<T>;
 
 export const inputForField = <T extends EntityItem>(field: EntityField<T>) => {
