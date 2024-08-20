@@ -1,36 +1,37 @@
 import { LinkProps } from "@tanstack/react-router";
-import { AnyObject } from "antd/es/_util/type";
 import { QueryTableProps, TableQueryQuery } from "../data-display/QueryTable";
-import { QueryFormProps } from "../data-entry/QueryForm";
-import { QuerySelect } from "../data-entry/QuerySelect";
-import { EntityListItem } from "../pages/EntityList";
+import {
+  OptionType,
+  QuerySelect,
+  QuerySelectProps,
+} from "../data-entry/QuerySelect";
 import { EntityCreatePage } from "./EntityCreatePage";
 import { EntityListPage } from "./EntityListPage";
 import { EntityUpdatePage } from "./EntityUpdatePage";
 import { EntityField } from "./entity-fields";
+import { EntityItem } from "../types/shared";
+import { Alert } from "antd";
 
-type EntityTableConfig<L extends EntityListItem> = {
-  queryFn: TableQueryQuery<L>["queryFn"];
-  columns: QueryTableProps<L>["columns"];
+type EntityTableConfig<T extends EntityItem> = {
+  queryFn: TableQueryQuery<T>["queryFn"];
+  columns: QueryTableProps<T>["columns"];
 };
 
-export type EntityConfig<
-  T extends AnyObject,
-  L extends EntityListItem = EntityListItem,
-> = {
+export type EntityConfig<T extends EntityItem, S extends OptionType> = {
   name: string;
-  table: EntityTableConfig<L>;
+  rootRoute: LinkProps;
+  table: EntityTableConfig<T>;
+  select?: QuerySelectProps<S>;
   getQueryFn?: (id: string) => Promise<T | null>;
-  createMutationFn?: QueryFormProps<T>["mutation"]["mutationFn"];
+  createMutationFn?: (values: T) => Promise<T>;
   updateMutationFn?: (id: string, values: T) => Promise<T>;
   deleteMutationFn?: (item: T) => Promise<unknown>;
-  rootRoute: LinkProps;
 };
 
-export class Entity<T extends EntityListItem = EntityListItem> {
-  protected fields: EntityField[] = [];
+export class Entity<T extends EntityItem, S extends OptionType> {
+  protected fields: EntityField<T>[] = [];
 
-  constructor(private config: EntityConfig<T>) {}
+  constructor(private config: EntityConfig<T, S>) {}
 
   protected clone(): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +40,7 @@ export class Entity<T extends EntityListItem = EntityListItem> {
     return clone;
   }
 
-  public addField(field: EntityField): this {
+  public addField(field: EntityField<T>): this {
     const clone = this.clone();
     clone.fields.push(field);
     return clone;
@@ -50,7 +51,6 @@ export class Entity<T extends EntityListItem = EntityListItem> {
   }
 
   public getCreatePage() {
-    console.log("???");
     return <EntityCreatePage config={this.config} fields={this.fields} />;
   }
 
@@ -60,23 +60,33 @@ export class Entity<T extends EntityListItem = EntityListItem> {
     );
   }
   public getSelectComponent() {
+    if (!this.config.select) {
+      return (
+        <Alert
+          message={`Select is not configured for entity ${this.config.name}`}
+          type="error"
+        />
+      );
+    }
     return (
       <QuerySelect
-        query={{
-          queryKey: [this.config.name, "select"],
-          queryFn: async () => {
-            const res = await this.config.table.queryFn({
-              sorter: [],
-              filters: {},
-              pagination: { current: 0, pageSize: 100 },
-            });
-            return res.items.map((item) => ({
-              value: item.id,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              label: (item as any).name,
-            }));
-          },
-        }}
+        {...this.config.select}
+        // query={{
+        //   queryKey: [this.config.name, "select"],
+        //   queryFn: async () => {
+        //     const res = await this.config.table.queryFn({
+        //       sorter: [],
+        //       filters: {},
+        //       pagination: { current: 0, pageSize: 100 },
+        //     });
+        //     return res.items.map((item) => ({
+        //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        //       value: (item as any).id,
+        //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        //       label: (item as any).name,
+        //     }));
+        //   },
+        // }}
       />
     );
   }

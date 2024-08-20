@@ -8,10 +8,11 @@ import {
   TablePaginationConfig,
   TableProps,
 } from "antd";
-import { AnyObject } from "antd/es/_util/type";
+import { FilterValue } from "antd/es/table/interface";
 import { useState } from "react";
 import { columnTypeForTableColumnType, TableColumn } from "./QueryTableColumns";
-import { FilterValue } from "antd/es/table/interface";
+import { AnyObject } from "antd/es/_util/type";
+import { EntityItem } from "../types/shared";
 
 export type QueryTableColumns<RecordType> = TableColumn<RecordType>;
 
@@ -38,19 +39,17 @@ export type TableQueryQuery<T> = Omit<
   queryFn: (state: QueryTableState) => Promise<TableData<T>>;
 };
 
-export type QueryTableProps<T extends AnyObject> = Omit<
+export type QueryTableProps<T extends EntityItem> = Omit<
   TableProps<T>,
   "columns"
 > & {
   query: TableQueryQuery<T>;
-  deleteMutationFn?: (item: T) => Promise<unknown>;
   columns: QueryTableColumns<T>[];
   defaultState?: Partial<QueryTableState>;
 };
 
 export const QueryTable = <T extends AnyObject>({
   query,
-  deleteMutationFn,
   columns,
   defaultState,
   ...props
@@ -76,8 +75,9 @@ export const QueryTable = <T extends AnyObject>({
 
   const { pagination, ...rest } = props;
   return (
-    <Table
-      dataSource={data?.items}
+    <Table<T>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      dataSource={data?.items ?? []}
       locale={{
         emptyText: error && (
           <Alert

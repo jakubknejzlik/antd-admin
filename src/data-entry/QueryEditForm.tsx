@@ -1,22 +1,18 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Alert } from "antd";
-import { AnyObject } from "antd/es/_util/type";
 import { PropsWithChildren } from "react";
 import { QueryForm, QueryFormProps } from "./QueryForm";
 
-export type QueryEditFormProps<
-  T extends AnyObject | null,
-  U extends AnyObject,
-> = QueryFormProps<U> &
+export type QueryEditFormProps<T> = QueryFormProps<T> &
   PropsWithChildren<{
-    query: Parameters<typeof useQuery<T>>[0];
+    query: Parameters<typeof useQuery<T | null>>[0];
   }>;
 
-export const QueryEditForm = <T extends AnyObject | null, U extends AnyObject>({
+export const QueryEditForm = <T,>({
   query,
   mutation,
   ...props
-}: QueryEditFormProps<T, U>) => {
+}: QueryEditFormProps<T>) => {
   const queryClient = useQueryClient();
   const { data, isLoading, error } = useQuery(query);
 

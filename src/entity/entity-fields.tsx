@@ -1,5 +1,6 @@
 import { DatePicker, Input, InputNumber, Switch } from "antd";
 import { Entity } from "./entity";
+import { EntityItem } from "../types/shared";
 
 export type EntityFieldBase = {
   name: string;
@@ -18,19 +19,19 @@ export type EntityDateField = EntityFieldBase & {
 export type EntityBooleanField = EntityFieldBase & {
   type: "boolean";
 };
-export type EntitySelectField = EntityFieldBase & {
+export type EntitySelectField<T extends EntityItem> = EntityFieldBase & {
   type: "select";
-  targetEntity: () => Entity;
+  targetEntity: () => Entity<T>;
 };
 
-export type EntityField =
+export type EntityField<T extends EntityItem> =
   | EntityStringField
   | EntityNumberField
   | EntityDateField
   | EntityBooleanField
-  | EntitySelectField;
+  | EntitySelectField<T>;
 
-export const inputForField = (field: EntityField) => {
+export const inputForField = <T extends EntityItem>(field: EntityField<T>) => {
   switch (field.type) {
     case "number":
       return <InputNumber />;

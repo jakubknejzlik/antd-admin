@@ -1,21 +1,20 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Card, Form } from "antd";
-import { AnyObject } from "antd/es/_util/type";
 import { QueryForm } from "../data-entry/QueryForm";
 import { Page } from "../layout";
-import { EntityListItem } from "../pages/EntityList";
 import { EntityConfig } from "./entity";
 import { EntityField, inputForField } from "./entity-fields";
+import { EntityItem } from "../types/shared";
 
-type EntityCreatePageProps<
-  T extends AnyObject = AnyObject,
-  L extends EntityListItem = EntityListItem,
-> = {
-  config: EntityConfig<T, L>;
-  fields: EntityField[];
+type EntityCreatePageProps<T extends EntityItem> = {
+  config: EntityConfig<T>;
+  fields: EntityField<T>[];
 };
 
-export const EntityCreatePage = ({ config, fields }: EntityCreatePageProps) => {
+export const EntityCreatePage = <T extends EntityItem>({
+  config,
+  fields,
+}: EntityCreatePageProps<T>) => {
   const { name, rootRoute, createMutationFn } = config;
   const navigate = useNavigate();
   return (

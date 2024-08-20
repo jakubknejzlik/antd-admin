@@ -1,19 +1,18 @@
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { Link } from "@tanstack/react-router";
 import { Button, Card } from "antd";
-import { AnyObject } from "antd/es/_util/type";
 import { Page } from "../layout";
-import { EntityList, EntityListItem } from "../pages/EntityList";
+import { EntityList } from "../pages/EntityList";
 import { EntityConfig } from "./entity";
+import { EntityItem } from "../types/shared";
 
-type EntityListPageProps<
-  T extends AnyObject = AnyObject,
-  L extends EntityListItem = EntityListItem,
-> = {
-  config: EntityConfig<T, L>;
+type EntityListPageProps<T extends EntityItem> = {
+  config: EntityConfig<T>;
 };
 
-export const EntityListPage = ({ config }: EntityListPageProps) => {
+export const EntityListPage = <T extends EntityItem>({
+  config,
+}: EntityListPageProps<T>) => {
   const { name, rootRoute, table, deleteMutationFn, updateMutationFn } = config;
   return (
     <Page>
@@ -34,11 +33,12 @@ export const EntityListPage = ({ config }: EntityListPageProps) => {
           columns={table.columns}
           buttons={
             updateMutationFn
-              ? ({ id }) => (
+              ? (item) => (
                   <Link
                     from={rootRoute.to}
                     to={"./$id" as string}
-                    params={{ id }}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    params={{ id: (item as any).id }}
                   >
                     <Button icon={<EditOutlined />} />
                   </Link>

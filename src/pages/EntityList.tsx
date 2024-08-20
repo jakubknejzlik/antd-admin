@@ -1,23 +1,21 @@
 import { DeleteOutlined } from "@ant-design/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Space } from "antd";
-import { AnyObject } from "antd/es/_util/type";
 import {
   QueryTable,
-  QueryTableProps,
   QueryTableColumns,
+  QueryTableProps,
 } from "../data-display/QueryTable";
 import { MutationButton } from "../general/MutationButton";
+import { EntityItem } from "../types/shared";
 
-export type EntityListItem = AnyObject & { id: string };
-
-export interface EntityListProps<T extends EntityListItem>
+export interface EntityListProps<T extends EntityItem>
   extends QueryTableProps<T> {
   buttons?: (item: T) => React.ReactNode;
   deleteMutationFn?: (item: T) => Promise<unknown>;
 }
 
-export const EntityList = <T extends EntityListItem>({
+export const EntityList = <T extends EntityItem>({
   buttons,
   deleteMutationFn,
   ...rest

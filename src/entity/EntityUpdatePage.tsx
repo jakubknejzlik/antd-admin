@@ -1,27 +1,23 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Card, Form } from "antd";
-import { AnyObject } from "antd/es/_util/type";
 import { QueryEditForm } from "../data-entry/QueryEditForm";
 import { Page } from "../layout";
-import { EntityListItem } from "../pages/EntityList";
 import { EntityConfig } from "./entity";
 import { EntityField, inputForField } from "./entity-fields";
+import { EntityItem } from "../types/shared";
 
-type EntityUpdatePageProps<
-  T extends AnyObject = AnyObject,
-  L extends EntityListItem = EntityListItem,
-> = {
+type EntityUpdatePageProps<T extends EntityItem> = {
   id: string;
-  config: EntityConfig<T, L>;
-  fields: EntityField[];
+  config: EntityConfig<T>;
+  fields: EntityField<T>[];
 };
 
-export const EntityUpdatePage = ({
+export const EntityUpdatePage = <T extends EntityItem>({
   id,
   config,
   fields,
-}: EntityUpdatePageProps) => {
+}: EntityUpdatePageProps<T>) => {
   const { name, rootRoute, getQueryFn, updateMutationFn } = config;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
