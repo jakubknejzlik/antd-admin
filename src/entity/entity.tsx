@@ -1,26 +1,28 @@
 import { LinkProps } from "@tanstack/react-router";
-import { QueryTableProps, TableQueryQuery } from "../data-display/QueryTable";
+import { Alert } from "antd";
 import {
   OptionType,
   QuerySelect,
   QuerySelectProps,
 } from "../data-entry/QuerySelect";
+import { EntityListProps } from "../pages/EntityList";
+import { EntityItem } from "../types/shared";
 import { EntityCreatePage } from "./EntityCreatePage";
 import { EntityListPage } from "./EntityListPage";
 import { EntityUpdatePage } from "./EntityUpdatePage";
 import { EntityField } from "./entity-fields";
-import { EntityItem } from "../types/shared";
-import { Alert } from "antd";
 
-type EntityTableConfig<T extends EntityItem> = {
-  queryFn: TableQueryQuery<T>["queryFn"];
-  columns: QueryTableProps<T>["columns"];
+type EntityListConfig<T extends EntityItem> = Omit<
+  EntityListProps<T>,
+  "query"
+> & {
+  query: Omit<EntityListProps<T>["query"], "queryKey">;
 };
 
 export type EntityConfig<T extends EntityItem, S extends OptionType> = {
   name: string;
   rootRoute: LinkProps;
-  table: EntityTableConfig<T>;
+  list: EntityListConfig<T>;
   select?: QuerySelectProps<S>;
   getQueryFn?: (id: string) => Promise<T | null>;
   createMutationFn?: (values: T) => Promise<T>;

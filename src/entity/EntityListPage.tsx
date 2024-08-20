@@ -14,13 +14,16 @@ type EntityListPageProps<T extends EntityItem, S extends OptionType> = {
 export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   config,
 }: EntityListPageProps<T, S>) => {
-  const { name, rootRoute, table, deleteMutationFn, updateMutationFn } = config;
+  const { name, rootRoute, list, deleteMutationFn, updateMutationFn } = config;
+  const { query, buttons, ...rest } = list;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rootPath = rootRoute.to as any;
   return (
     <Page>
       <Card
         title={name}
         extra={
-          <Link from={rootRoute.to} to={"./new" as string}>
+          <Link from={rootPath} to={"./new" as string}>
             <Button icon={<PlusOutlined />} />
           </Link>
         }
@@ -29,24 +32,27 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
         <EntityList
           query={{
             queryKey: [rootRoute.to, "list"],
-            queryFn: table.queryFn,
+            ...query,
           }}
-          columns={table.columns}
           buttons={
-            updateMutationFn
+            buttons || updateMutationFn
               ? (item) => (
-                  <Link
-                    from={rootRoute.to}
-                    to={"./$id" as string}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    params={{ id: (item as any).id }}
-                  >
-                    <Button icon={<EditOutlined />} />
-                  </Link>
+                  <>
+                    {buttons?.(item)}
+                    <Link
+                      from={rootPath}
+                      to={"./$id/edit" as string}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      params={{ id: (item as any).id }}
+                    >
+                      <Button icon={<EditOutlined />} />
+                    </Link>
+                  </>
                 )
               : undefined
           }
           deleteMutationFn={deleteMutationFn}
+          {...rest}
         />
       </Card>
     </Page>
