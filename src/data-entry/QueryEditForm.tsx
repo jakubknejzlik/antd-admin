@@ -11,6 +11,7 @@ export type QueryEditFormProps<T> = QueryFormProps<T> &
 export const QueryEditForm = <T,>({
   query,
   mutation,
+  loading,
   ...props
 }: QueryEditFormProps<T>) => {
   const queryClient = useQueryClient();
@@ -19,21 +20,26 @@ export const QueryEditForm = <T,>({
   if (error) {
     return <Alert message={error.message} type="error" />;
   }
+  if (!data && !isLoading) {
+    return <Alert message="Item not found" type="error" />;
+  }
 
   return (
-    <QueryForm
-      key={data ? "loaded" : "loading"}
-      disabled={isLoading || !data}
-      loading={isLoading}
-      initialValues={data ?? {}}
-      mutation={{
-        ...mutation,
-        onSuccess: async (...args) => {
-          await queryClient.invalidateQueries({ queryKey: query.queryKey });
-          await mutation.onSuccess?.(...args);
-        },
-      }}
-      {...props}
-    />
+    <>
+      <QueryForm
+        key={data ? "loaded" : "loading"}
+        disabled={loading || isLoading || !data}
+        loading={isLoading}
+        initialValues={data ?? {}}
+        mutation={{
+          ...mutation,
+          onSuccess: async (...args) => {
+            await queryClient.invalidateQueries({ queryKey: query.queryKey });
+            await mutation.onSuccess?.(...args);
+          },
+        }}
+        {...props}
+      />
+    </>
   );
 };

@@ -5,9 +5,7 @@ import { ColumnFilterDropdown } from "./filter-dropdowns/ColumnFilterDropdown";
 import { StringColumnFilterDropdown } from "./filter-dropdowns/StringColumnFilterDropdown";
 import { QueryTableState } from "./QueryTable";
 
-type ColumnBase<RecordType> = ColumnType<RecordType> & {
-  name: string;
-};
+type ColumnBase<RecordType> = ColumnType<RecordType>;
 type StringColumnType<RecordType> = ColumnBase<RecordType> & {
   type: "string";
 };

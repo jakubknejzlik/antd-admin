@@ -5,18 +5,18 @@ import {
   QuerySelect,
   QuerySelectProps,
 } from "../data-entry/QuerySelect";
-import { EntityListProps } from "../pages/EntityList";
+import { QueryTableWithButtonsProps } from "../data-display/QueryTableWithButtons";
 import { EntityItem } from "../types/shared";
-import { EntityCreatePage } from "./EntityCreatePage";
-import { EntityListPage } from "./EntityListPage";
-import { EntityUpdatePage } from "./EntityUpdatePage";
+import { EntityCreatePage, EntityCreatePageProps } from "./EntityCreatePage";
+import { EntityListPage, EntityListPageProps } from "./EntityListPage";
+import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
 import { EntityField } from "./entity-fields";
 
 type EntityListConfig<T extends EntityItem> = Omit<
-  EntityListProps<T>,
+  QueryTableWithButtonsProps<T>,
   "query"
 > & {
-  query: Omit<EntityListProps<T>["query"], "queryKey">;
+  query: Omit<QueryTableWithButtonsProps<T>["query"], "queryKey">;
 };
 
 export type EntityConfig<T extends EntityItem, S extends OptionType> = {
@@ -31,9 +31,9 @@ export type EntityConfig<T extends EntityItem, S extends OptionType> = {
 };
 
 export class Entity<T extends EntityItem, S extends OptionType> {
-  protected fields: EntityField<T>[] = [];
+  public fields: EntityField<T>[] = [];
 
-  constructor(private config: EntityConfig<T, S>) {}
+  constructor(public config: EntityConfig<T, S>) {}
 
   protected clone(): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,19 +48,21 @@ export class Entity<T extends EntityItem, S extends OptionType> {
     return clone;
   }
 
-  public getListPage() {
-    return <EntityListPage config={this.config} />;
+  public getListPage(props?: Omit<EntityListPageProps<T, S>, "entity">) {
+    return <EntityListPage entity={this} {...props} />;
   }
 
-  public getCreatePage() {
-    return <EntityCreatePage config={this.config} fields={this.fields} />;
+  public getCreatePage(props?: Omit<EntityCreatePageProps<T, S>, "entity">) {
+    return <EntityCreatePage entity={this} {...props} />;
   }
 
-  public getUpdatePage(id: string) {
-    return (
-      <EntityUpdatePage id={id} config={this.config} fields={this.fields} />
-    );
+  public getUpdatePage(
+    id: string,
+    props?: Omit<EntityUpdatePageProps<T, S>, "entity" | "id">
+  ) {
+    return <EntityUpdatePage id={id} entity={this} {...props} />;
   }
+
   public getSelectComponent() {
     if (!this.config.select) {
       return (

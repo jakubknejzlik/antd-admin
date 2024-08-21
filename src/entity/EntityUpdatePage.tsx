@@ -1,27 +1,32 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Card, Form } from "antd";
-import { QueryEditForm } from "../data-entry/QueryEditForm";
-import { Page } from "../layout";
-import { EntityConfig } from "./entity";
-import { EntityField, inputForField } from "./entity-fields";
-import { EntityItem } from "../types/shared";
+import { QueryEditForm, QueryEditFormProps } from "../data-entry/QueryEditForm";
 import { OptionType } from "../data-entry/QuerySelect";
+import { Page } from "../layout";
+import { EntityItem } from "../types/shared";
+import { Entity } from "./entity";
+import { EntityField, inputForField } from "./entity-fields";
 
-type EntityUpdatePageProps<T extends EntityItem, S extends OptionType> = {
+export type EntityUpdatePageProps<
+  T extends EntityItem,
+  S extends OptionType,
+> = Partial<QueryEditFormProps<T>> & {
   id: string;
-  config: EntityConfig<T, S>;
-  fields: EntityField<T>[];
+  entity: Entity<T, S>;
+  fields?: EntityField<T>[];
 };
 
 export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   id,
-  config,
+  entity,
   fields,
+  ...props
 }: EntityUpdatePageProps<T, S>) => {
-  const { name, rootRoute, getQueryFn, updateMutationFn } = config;
+  const { name, rootRoute, getQueryFn, updateMutationFn } = entity.config;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const _fields = fields ?? entity.fields;
   return (
     <Page>
       <Card title={`Update ${name}`}>
@@ -35,9 +40,11 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
               : undefined,
           }}
           mutation={{
-            mutationFn: async (values) => {
-              return updateMutationFn?.(id, values);
-            },
+            mutationFn: updateMutationFn
+              ? async (values) => {
+                  return updateMutationFn(id, values);
+                }
+              : undefined,
             onSuccess: async () => {
               await queryClient.invalidateQueries({
                 queryKey: [rootRoute.to, "list"],
@@ -45,12 +52,14 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
               navigate(rootRoute);
             },
           }}
+          {...props}
         >
-          {fields.map((field) => (
+          {_fields.map((field) => (
             <Form.Item
               key={field.name}
               label={field.label ?? field.name}
               name={field.name}
+              rules={field.required ? [{ required: true }] : []}
             >
               {inputForField(field)}
             </Form.Item>

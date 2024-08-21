@@ -25,6 +25,7 @@ export type QueryTableState = {
     field: string;
     order: QueryTableSortOrder;
   }>;
+  columns: string[];
 };
 
 type TableData<T> = {
@@ -62,6 +63,9 @@ export const QueryTable = <T extends AnyObject>({
     filters: {},
     sorter: [],
     ...defaultState,
+    columns: columns
+      .map((col) => ("dataIndex" in col ? col.dataIndex?.toString() : null))
+      .filter((x): x is string => !!x),
   });
   const { queryFn, queryKey, ...restQuery } = query;
   const { data, isFetching, error, refetch } = useQuery({

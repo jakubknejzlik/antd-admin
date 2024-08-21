@@ -1,21 +1,24 @@
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { Link } from "@tanstack/react-router";
 import { Button, Card } from "antd";
-import { Page } from "../layout";
-import { EntityList } from "../pages/EntityList";
-import { EntityConfig } from "./entity";
-import { EntityItem } from "../types/shared";
 import { OptionType } from "../data-entry/QuerySelect";
+import { Page } from "../layout";
+import { EntityItem } from "../types/shared";
+import { Entity } from "./entity";
+import { EntityList, EntityListProps } from "./EntityList";
 
-type EntityListPageProps<T extends EntityItem, S extends OptionType> = {
-  config: EntityConfig<T, S>;
+export type EntityListPageProps<
+  T extends EntityItem,
+  S extends OptionType,
+> = EntityListProps<T, S> & {
+  entity: Entity<T, S>;
 };
 
 export const EntityListPage = <T extends EntityItem, S extends OptionType>({
-  config,
+  entity,
+  ...props
 }: EntityListPageProps<T, S>) => {
-  const { name, rootRoute, list, deleteMutationFn, updateMutationFn } = config;
-  const { query, buttons, ...rest } = list;
+  const { name, rootRoute } = entity.config;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rootPath = rootRoute.to as any;
   return (
@@ -29,31 +32,7 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
         }
         styles={{ body: { padding: 0 } }}
       >
-        <EntityList
-          query={{
-            queryKey: [rootRoute.to, "list"],
-            ...query,
-          }}
-          buttons={
-            buttons || updateMutationFn
-              ? (item) => (
-                  <>
-                    {buttons?.(item)}
-                    <Link
-                      from={rootPath}
-                      to={"./$id/edit" as string}
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                      params={{ id: (item as any).id }}
-                    >
-                      <Button icon={<EditOutlined />} />
-                    </Link>
-                  </>
-                )
-              : undefined
-          }
-          deleteMutationFn={deleteMutationFn}
-          {...rest}
-        />
+        <EntityList entity={entity} {...props} />
       </Card>
     </Page>
   );

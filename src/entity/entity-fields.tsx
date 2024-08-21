@@ -6,6 +6,7 @@ export type EntityFieldBase<T> = {
   type: unknown;
   name: string;
   label?: string;
+  required?: boolean;
   render?: (value: unknown, item: T, index: number) => React.ReactNode;
 };
 export type EntityStringField<T> = EntityFieldBase<T> & {
