@@ -1,6 +1,6 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Link } from "@tanstack/react-router";
-import { Button, Card, CardProps } from "antd";
+import { Button, Card, CardProps, Input, Space } from "antd";
 import { OptionType } from "../data-entry/QuerySelect";
 import { Page } from "../layout";
 import { EntityItem } from "../types/shared";
@@ -28,9 +28,12 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
       <Card
         title={name}
         extra={
-          <Link from={rootPath} to={"./new" as string}>
-            <Button icon={<PlusOutlined />} />
-          </Link>
+          <Space>
+            <Input />
+            <Link from={rootPath} to={"./new" as string}>
+              <Button icon={<PlusOutlined />} />
+            </Link>
+          </Space>
         }
         styles={{ body: { padding: 0 } }}
         {...card}
