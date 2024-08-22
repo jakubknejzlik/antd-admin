@@ -77,7 +77,7 @@ export const QueryTable = <T extends AnyObject>({
     ...restQuery,
   });
 
-  const { pagination, ...rest } = props;
+  const { pagination, loading, ...rest } = props;
   return (
     <Table<T>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -99,7 +99,7 @@ export const QueryTable = <T extends AnyObject>({
           />
         ),
       }}
-      loading={isFetching}
+      loading={loading || isFetching}
       rowKey={(row) => `${row["id"]}`}
       columns={[
         ...columns.map((col) => {
