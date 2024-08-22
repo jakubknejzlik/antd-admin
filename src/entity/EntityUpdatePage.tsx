@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Card, Form } from "antd";
+import { Card, CardProps, Form } from "antd";
 import { QueryEditForm, QueryEditFormProps } from "../data-entry/QueryEditForm";
 import { OptionType } from "../data-entry/QuerySelect";
 import { Page } from "../layout";
@@ -15,12 +15,14 @@ export type EntityUpdatePageProps<
   id: string;
   entity: Entity<T, S>;
   fields?: EntityField<T>[];
+  card?: Partial<CardProps>;
 };
 
 export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   id,
   entity,
   fields,
+  card,
   ...props
 }: EntityUpdatePageProps<T, S>) => {
   const { name, rootRoute, getQueryFn, updateMutationFn } = entity.config;
@@ -29,7 +31,7 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   const _fields = fields ?? entity.fields;
   return (
     <Page>
-      <Card title={`Update ${name}`}>
+      <Card title={`Update ${name}`} {...card}>
         <QueryEditForm
           query={{
             queryKey: ["organization", "get", { id }],

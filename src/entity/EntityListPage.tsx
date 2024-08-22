@@ -1,6 +1,6 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Link } from "@tanstack/react-router";
-import { Button, Card } from "antd";
+import { Button, Card, CardProps } from "antd";
 import { OptionType } from "../data-entry/QuerySelect";
 import { Page } from "../layout";
 import { EntityItem } from "../types/shared";
@@ -12,10 +12,12 @@ export type EntityListPageProps<
   S extends OptionType,
 > = EntityListProps<T, S> & {
   entity: Entity<T, S>;
+  card?: Partial<CardProps>;
 };
 
 export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   entity,
+  card,
   ...props
 }: EntityListPageProps<T, S>) => {
   const { name, rootRoute } = entity.config;
@@ -31,6 +33,7 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
           </Link>
         }
         styles={{ body: { padding: 0 } }}
+        {...card}
       >
         <EntityList entity={entity} {...props} />
       </Card>
