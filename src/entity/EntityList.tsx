@@ -27,7 +27,7 @@ export const EntityList = <T extends EntityItem, S extends OptionType>({
   return (
     <QueryTableWithButtons
       query={{
-        queryKey: [rootRoute.to, "list"],
+        queryKey: entity.getListPageQueryKey(), //[rootRoute.to, "list"],
         ...query,
       }}
       buttons={

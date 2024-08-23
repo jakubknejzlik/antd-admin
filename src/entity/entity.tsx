@@ -1,11 +1,12 @@
+import { QueryKey } from "@tanstack/react-query";
 import { LinkProps } from "@tanstack/react-router";
 import { Alert } from "antd";
+import { QueryTableWithButtonsProps } from "../data-display/QueryTableWithButtons";
 import {
   OptionType,
   QuerySelect,
   QuerySelectProps,
 } from "../data-entry/QuerySelect";
-import { QueryTableWithButtonsProps } from "../data-display/QueryTableWithButtons";
 import { EntityItem } from "../types/shared";
 import { EntityCreatePage, EntityCreatePageProps } from "./EntityCreatePage";
 import { EntityListPage, EntityListPageProps } from "./EntityListPage";
@@ -50,6 +51,10 @@ export class Entity<T extends EntityItem, S extends OptionType> {
 
   public getListPage(props?: Omit<EntityListPageProps<T, S>, "entity">) {
     return <EntityListPage entity={this} {...props} />;
+  }
+
+  public getListPageQueryKey(): QueryKey {
+    return [this.config.name, "list"];
   }
 
   public getCreatePage(props?: Omit<EntityCreatePageProps<T, S>, "entity">) {

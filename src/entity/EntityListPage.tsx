@@ -23,12 +23,14 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   const { name, rootRoute } = entity.config;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rootPath = rootRoute.to as any;
+  const { extra, ...cardProps } = card ?? {};
   return (
     <Page>
       <Card
         title={name}
         extra={
           <Space>
+            {extra}
             <Input />
             <Link from={rootPath} to={"./new" as string}>
               <Button icon={<PlusOutlined />} />
@@ -36,7 +38,7 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
           </Space>
         }
         styles={{ body: { padding: 0 } }}
-        {...card}
+        {...cardProps}
       >
         <EntityList entity={entity} {...props} />
       </Card>
