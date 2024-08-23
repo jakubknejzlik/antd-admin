@@ -6,6 +6,7 @@ import { Page } from "../layout";
 import { EntityItem } from "../types/shared";
 import { Entity } from "./entity";
 import { EntityList, EntityListProps } from "./EntityList";
+import { useState } from "react";
 
 export type EntityListPageProps<
   T extends EntityItem,
@@ -15,11 +16,14 @@ export type EntityListPageProps<
   card?: Partial<CardProps>;
 };
 
+type EntityListPageState = { search?: string };
+
 export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   entity,
   card,
   ...props
 }: EntityListPageProps<T, S>) => {
+  const [state, setState] = useState<EntityListPageState>({});
   const { name, rootRoute } = entity.config;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rootPath = rootRoute.to as any;
@@ -31,7 +35,13 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
         extra={
           <Space>
             {extra}
-            <Input />
+            <Input
+              value={state.search}
+              onChange={(e) =>
+                setState((state) => ({ ...state, search: e.target.value }))
+              }
+              allowClear
+            />
             <Link from={rootPath} to={"./new" as string}>
               <Button icon={<PlusOutlined />} />
             </Link>
@@ -40,7 +50,7 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
         styles={{ body: { padding: 0 } }}
         {...cardProps}
       >
-        <EntityList entity={entity} {...props} />
+        <EntityList entity={entity} search={state.search} {...props} />
       </Card>
     </Page>
   );

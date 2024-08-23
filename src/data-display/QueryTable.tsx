@@ -37,7 +37,9 @@ export type TableQueryQuery<T> = Omit<
   UseQueryOptions<TableData<T>, Error, TableData<T>, QueryKey>,
   "queryFn"
 > & {
-  queryFn: (state: QueryTableState) => Promise<TableData<T>>;
+  queryFn: (
+    state: QueryTableState & { search?: string }
+  ) => Promise<TableData<T>>;
 };
 
 export type QueryTableProps<T extends EntityItem> = Omit<
@@ -47,12 +49,14 @@ export type QueryTableProps<T extends EntityItem> = Omit<
   query: TableQueryQuery<T>;
   columns: QueryTableColumns<T>[];
   defaultState?: Partial<QueryTableState>;
+  search?: string;
 };
 
 export const QueryTable = <T extends AnyObject>({
   query,
   columns,
   defaultState,
+  search,
   ...props
 }: QueryTableProps<T>) => {
   const [state, setState] = useState<QueryTableState>({
@@ -69,9 +73,9 @@ export const QueryTable = <T extends AnyObject>({
   });
   const { queryFn, queryKey, ...restQuery } = query;
   const { data, isFetching, error, refetch } = useQuery({
-    queryKey: [...queryKey, state],
+    queryKey: [...queryKey, state, search],
     queryFn: async () => {
-      return queryFn(state);
+      return queryFn({ ...state, search });
     },
     placeholderData: (data) => data,
     ...restQuery,
