@@ -1,6 +1,7 @@
 import { QueryKey, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { Alert, Select, SelectProps } from "antd";
 import { useState } from "react";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 
 export type OptionType = { value: string; label: React.ReactNode };
 
@@ -31,6 +32,13 @@ export const QuerySelect = <T extends OptionType>({
   ...props
 }: QuerySelectProps<T>) => {
   const [state, setState] = useState<SelectTableState>({ ...defaultState });
+  const [searchValue, setSearchValue] = useDebouncedValue<string>(
+    state.search ?? "",
+    300,
+    (search) => {
+      setState((state) => ({ ...state, search }));
+    }
+  );
 
   const { queryFn, queryKey, ...queryRest } = query;
   const { data, isLoading, error } = useQuery({
@@ -47,11 +55,9 @@ export const QuerySelect = <T extends OptionType>({
       <Select
         loading={isLoading}
         options={data?.items}
-        searchValue={state.search}
         showSearch
-        onSearch={(search) => {
-          setState((state) => ({ ...state, search }));
-        }}
+        searchValue={searchValue}
+        onSearch={setSearchValue}
         filterOption={false}
         {...props}
       />

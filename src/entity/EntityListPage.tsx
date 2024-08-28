@@ -7,6 +7,7 @@ import { EntityItem } from "../types/shared";
 import { Entity } from "./entity";
 import { EntityList, EntityListProps } from "./EntityList";
 import { useState } from "react";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 
 export type EntityListPageProps<
   T extends EntityItem,
@@ -24,7 +25,15 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   ...props
 }: EntityListPageProps<T, S>) => {
   const [state, setState] = useState<EntityListPageState>({});
+  const [searchValue, setSearchValue] = useDebouncedValue<string>(
+    state.search ?? "",
+    300,
+    (search) => {
+      setState((state) => ({ ...state, search }));
+    }
+  );
   const { name, rootRoute } = entity.config;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rootPath = rootRoute.to as any;
   const { extra, ...cardProps } = card ?? {};
@@ -36,10 +45,8 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
           <Space>
             {extra}
             <Input
-              value={state.search}
-              onChange={(e) =>
-                setState((state) => ({ ...state, search: e.target.value }))
-              }
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
               allowClear
             />
             <Link from={rootPath} to={"./new" as string}>
