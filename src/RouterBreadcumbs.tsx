@@ -35,8 +35,11 @@ export const RouterBreadcumbs = () => {
         },
         ...breadcrumbs,
       ]}
-      className="px-4 py-2 w-full"
-      style={{ backgroundColor: colorBgContainer }}
+      style={{
+        backgroundColor: colorBgContainer,
+        width: "100%",
+        padding: "0.5rem 1rem 0.5rem 1rem",
+      }}
     />
   );
 };

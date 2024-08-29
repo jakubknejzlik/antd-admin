@@ -34,7 +34,7 @@ export const AdminLayout = ({
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Header className="p-0 pr-6">
+      <Header style={{ padding: 0, paddingRight: "1.5rem" }}>
         <Flex
           justify="space-between"
           align="center"
@@ -42,7 +42,7 @@ export const AdminLayout = ({
             height: 64,
           }}
         >
-          <div className="text-md text-white p-10 w-52">
+          <div style={{ width: "13rem", padding: "2.5rem", color: "white" }}>
             <img src="/logo.png" alt="logo" />
           </div>
           <Dropdown
