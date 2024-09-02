@@ -1,7 +1,7 @@
 import { resolveOptionalThunkAsync, ThunkAsync } from "ts-thunk";
 import { z } from "zod";
 
-import { Cond, ISerializable, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
+import { Cond, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
 import { initTRPC } from "@trpc/server";
 import { RunQueriesHandler } from "./types";
 
