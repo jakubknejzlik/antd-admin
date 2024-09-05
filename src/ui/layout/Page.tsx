@@ -1,10 +1,15 @@
 import { Outlet, useChildMatches } from "@tanstack/react-router";
-import { PropsWithChildren } from "react";
+import { Spin } from "antd";
+import { PropsWithChildren, Suspense } from "react";
 
 export const Page = ({ children }: PropsWithChildren) => {
   const child = useChildMatches();
   if (child.length > 0) {
     return <Outlet />;
   }
-  return children;
+  return (
+    <Suspense fallback={<Spin style={{ width: "100%" }} />}>
+      {children}
+    </Suspense>
+  );
 };
