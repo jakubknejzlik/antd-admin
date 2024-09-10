@@ -12,6 +12,7 @@ const { Header, Content, Sider } = Layout;
 interface LayoutProps {
   menuItems?: ItemType<MenuItemType>[];
   user?: { username: string };
+  header?: React.ReactNode;
   signOut?: () => void;
 }
 
@@ -19,6 +20,7 @@ export const AdminLayout = ({
   children,
   menuItems,
   user,
+  header,
   signOut,
 }: PropsWithChildren<LayoutProps>) => {
   const {
@@ -45,25 +47,28 @@ export const AdminLayout = ({
           <div style={{ width: "13rem", padding: "2.5rem", color: "white" }}>
             <img src="/logo.png" alt="logo" />
           </div>
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "logout",
-                  label: "Logout",
-                  icon: <LogoutOutlined />,
-                  onClick: signOut,
-                },
-              ],
-            }}
-          >
-            <a onClick={(e) => e.preventDefault()}>
-              <Space style={{ color: "white" }}>
-                {user?.username}
-                <DownOutlined />
-              </Space>
-            </a>
-          </Dropdown>
+          <Space>
+            {header}
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "logout",
+                    label: "Logout",
+                    icon: <LogoutOutlined />,
+                    onClick: signOut,
+                  },
+                ],
+              }}
+            >
+              <a onClick={(e) => e.preventDefault()}>
+                <Space style={{ color: "white" }}>
+                  {user?.username}
+                  <DownOutlined />
+                </Space>
+              </a>
+            </Dropdown>
+          </Space>
         </Flex>
       </Header>
       <Layout>
