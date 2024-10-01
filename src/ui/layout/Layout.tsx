@@ -14,6 +14,7 @@ interface LayoutProps {
   user?: { username: string };
   header?: React.ReactNode;
   signOut?: () => void;
+  logo?: React.ReactNode;
 }
 
 export const AdminLayout = ({
@@ -22,6 +23,7 @@ export const AdminLayout = ({
   user,
   header,
   signOut,
+  logo,
 }: PropsWithChildren<LayoutProps>) => {
   const {
     token: { colorBgContainer },
@@ -44,9 +46,11 @@ export const AdminLayout = ({
             height: 64,
           }}
         >
-          <div style={{ width: "13rem", padding: "2.5rem", color: "white" }}>
-            <img src="/logo.png" alt="logo" />
-          </div>
+          {logo || (
+            <div style={{ width: "13rem", padding: "2.5rem", color: "white" }}>
+              <img src="/logo.png" alt="logo" />
+            </div>
+          )}
           <Space>
             {header}
             <Dropdown
