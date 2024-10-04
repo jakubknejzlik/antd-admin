@@ -44,8 +44,14 @@ export class Entity<T extends EntityItem, S extends OptionType> {
   }
 
   public addField(field: EntityField<T>): this {
+    return this.addFields([field]);
+  }
+
+  public addFields(fields: EntityField<T>[]): this {
     const clone = this.clone();
-    clone.fields.push(field);
+    for (const field of fields) {
+      clone.fields.push(field);
+    }
     return clone;
   }
 

@@ -34,7 +34,7 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
       <Card title={`Update ${name}`} {...card}>
         <QueryEditForm
           query={{
-            queryKey: ["organization", "get", { id }],
+            queryKey: [name, "get", { id }],
             queryFn: getQueryFn
               ? () => {
                   return getQueryFn?.(id);
