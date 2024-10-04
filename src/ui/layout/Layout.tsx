@@ -1,15 +1,14 @@
 // import { useAuthenticator } from "@aws-amplify/ui-react";
-import { Dropdown, Flex, Layout, Menu, Space, theme } from "antd";
+import { Dropdown, Flex, Layout, Space, theme } from "antd";
 
-import { useRouterState } from "@tanstack/react-router";
-
+import { DownOutlined, LogoutOutlined } from "@ant-design/icons";
 import { ItemType, MenuItemType } from "antd/es/menu/interface";
 import { PropsWithChildren } from "react";
-import { DownOutlined, LogoutOutlined } from "@ant-design/icons";
+import { AdminLayoutMenu } from "./LayoutMenu";
 
 const { Header, Content, Sider } = Layout;
 
-interface LayoutProps {
+export interface AdminLayoutProps {
   menuItems?: ItemType<MenuItemType>[];
   user?: { username: string };
   header?: React.ReactNode;
@@ -24,17 +23,10 @@ export const AdminLayout = ({
   header,
   signOut,
   logo,
-}: PropsWithChildren<LayoutProps>) => {
+}: PropsWithChildren<AdminLayoutProps>) => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
-
-  const { matches } = useRouterState();
-
-  const lastMatch = matches[matches.length - 1];
-  const openKeys = (lastMatch ? [lastMatch] : []).map(
-    (m) => "/" + m.pathname.split("/")[1]
-  );
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -82,13 +74,7 @@ export const AdminLayout = ({
           style={{ background: colorBgContainer }}
           className="w-52"
         >
-          <Menu
-            theme="light"
-            mode="inline"
-            selectedKeys={openKeys}
-            openKeys={openKeys}
-            items={menuItems}
-          />
+          <AdminLayoutMenu items={menuItems} />
         </Sider>
         <Content
           style={{
