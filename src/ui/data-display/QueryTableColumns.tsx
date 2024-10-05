@@ -4,6 +4,7 @@ import { formatNumber } from "../functions/numeral";
 import { ColumnFilterDropdown } from "./filter-dropdowns/ColumnFilterDropdown";
 import { StringColumnFilterDropdown } from "./filter-dropdowns/StringColumnFilterDropdown";
 import { QueryTableState } from "./QueryTable";
+import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 
 type ColumnBase<RecordType> = ColumnType<RecordType>;
 type StringColumnType<RecordType> = ColumnBase<RecordType> & {
@@ -21,12 +22,16 @@ type DateTimeColumnType<RecordType> = ColumnBase<RecordType> & {
   type: "datetime";
   format?: string;
 };
+type BooleanColumnType<RecordType> = ColumnBase<RecordType> & {
+  type: "boolean";
+};
 
 export type TableColumnType<RecordType> =
   | StringColumnType<RecordType>
   | NumberColumnType<RecordType>
   | DateColumnType<RecordType>
-  | DateTimeColumnType<RecordType>;
+  | DateTimeColumnType<RecordType>
+  | BooleanColumnType<RecordType>;
 
 export type InitialTableColumn<RecordType> =
   | ColumnGroupType<RecordType>
@@ -94,6 +99,12 @@ export const columnTypeForTableColumnType = <RecordType,>(
     case "datetime":
       return {
         render: (value) => formatDate(value, c.format ?? "lll"),
+        ...defaultProps,
+        ...c,
+      };
+    case "boolean":
+      return {
+        render: (value) => (value ? <CheckOutlined /> : <CloseOutlined />),
         ...defaultProps,
         ...c,
       };

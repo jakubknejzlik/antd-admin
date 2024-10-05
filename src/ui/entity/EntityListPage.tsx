@@ -1,13 +1,13 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Link } from "@tanstack/react-router";
-import { Button, Card, CardProps, Input, Space } from "antd";
+import { Button, Card, CardProps, Space } from "antd";
+import { useState } from "react";
 import { OptionType } from "../data-entry/QuerySelect";
+import { SearchInput } from "../data-entry/SearchInput";
 import { Page } from "../layout";
 import { EntityItem } from "../types/shared";
 import { Entity } from "./entity";
 import { EntityList, EntityListProps } from "./EntityList";
-import { useState } from "react";
-import { useDebouncedValue } from "../hooks/useDebouncedValue";
 
 export type EntityListPageProps<
   T extends EntityItem,
@@ -25,13 +25,6 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   ...props
 }: EntityListPageProps<T, S>) => {
   const [state, setState] = useState<EntityListPageState>({});
-  const [searchValue, setSearchValue] = useDebouncedValue<string>(
-    state.search ?? "",
-    300,
-    (search) => {
-      setState((state) => ({ ...state, search }));
-    }
-  );
   const { name, rootRoute } = entity.config;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,10 +37,9 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
         extra={
           <Space>
             {extra}
-            <Input
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              allowClear
+            <SearchInput
+              value={state.search}
+              onChange={(search) => setState((state) => ({ ...state, search }))}
             />
             <Link from={rootPath} to={"./new" as string}>
               <Button icon={<PlusOutlined />} />

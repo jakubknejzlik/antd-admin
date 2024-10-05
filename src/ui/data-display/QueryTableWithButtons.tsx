@@ -2,7 +2,7 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { Space } from "antd";
 import { QueryTable, QueryTableColumns, QueryTableProps } from "./QueryTable";
-import { MutationButton } from "../general/MutationButton";
+import { MutationButton } from "./MutationButton";
 import { EntityItem } from "../types/shared";
 
 export interface QueryTableWithButtonsProps<T extends EntityItem>

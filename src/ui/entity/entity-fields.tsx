@@ -1,12 +1,14 @@
 import { DatePicker, Input, InputNumber, Switch } from "antd";
 import { EntityItem } from "../types/shared";
 import { Entity } from "./entity";
+import { Rule } from "antd/es/form";
 
 export type EntityFieldBase<T> = {
   type: unknown;
   name: string;
   label?: string;
   required?: boolean;
+  validationRules?: Rule[];
   render?: (value: unknown, item: T, index: number) => React.ReactNode;
 };
 export type EntityStringField<T> = EntityFieldBase<T> & {

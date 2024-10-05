@@ -61,7 +61,11 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
               key={field.name}
               label={field.label ?? field.name}
               name={field.name}
-              rules={field.required ? [{ required: true }] : []}
+              rules={
+                field.required
+                  ? [...(field.validationRules ?? []), { required: true }]
+                  : field.validationRules
+              }
             >
               {inputForField(field)}
             </Form.Item>
