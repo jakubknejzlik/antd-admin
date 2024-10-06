@@ -1,7 +1,8 @@
-import { DatePicker, Input, InputNumber, Switch } from "antd";
+import { Input, InputNumber, Switch } from "antd";
+import { Rule } from "antd/es/form";
+import { RawDatePicker } from "../data-entry/RawDatePicker";
 import { EntityItem } from "../types/shared";
 import { Entity } from "./entity";
-import { Rule } from "antd/es/form";
 
 export type EntityFieldBase<T> = {
   type: unknown;
@@ -41,7 +42,7 @@ export const inputForField = <T extends EntityItem>(field: EntityField<T>) => {
     case "number":
       return <InputNumber />;
     case "date":
-      return <DatePicker />;
+      return <RawDatePicker />;
     case "boolean":
       return <Switch />;
     case "select":

@@ -15,7 +15,7 @@ export function useDebouncedValue<T>(
     return () => {
       clearTimeout(handler);
     };
-  }, [value, delay, changeHandler]);
+  }, [value, delay]);
 
   return [value, setValue] as const;
 }

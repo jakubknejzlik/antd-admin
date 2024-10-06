@@ -14,6 +14,7 @@ export const SearchInput = ({ value, onChange }: SearchInputProps) => {
       onChange?.(search);
     }
   );
+
   return (
     <Input
       value={searchValue}

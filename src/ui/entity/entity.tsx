@@ -47,6 +47,19 @@ export class Entity<T extends EntityItem, S extends OptionType = any> {
     return this.addFields([field]);
   }
 
+  public updateField(name: string, field: Partial<EntityField<T>>): this {
+    const clone = this.clone();
+    const index = clone.fields.findIndex((f) => f.name === name);
+    if (index === -1) {
+      throw new Error(`Field ${name} not found`);
+    }
+    clone.fields[index] = {
+      ...clone.fields[index],
+      ...field,
+    } as EntityField<T>;
+    return clone;
+  }
+
   public addFields(fields: EntityField<T>[]): this {
     const clone = this.clone();
     for (const field of fields) {

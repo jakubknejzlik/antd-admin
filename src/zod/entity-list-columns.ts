@@ -1,13 +1,13 @@
-import { AnyZodObject, z, ZodRawShape, ZodTypeAny } from "zod";
-import { EntityField } from "../ui/entity/entity-fields";
-import { EntityItem } from "../ui/types/shared";
+import { AnyZodObject, z, ZodTypeAny } from "zod";
 import { QueryTableColumns } from "../ui/data-display/QueryTable";
 import { TableColumnType } from "../ui/data-display/QueryTableColumns";
+import { EntityField } from "../ui/entity/entity-fields";
+import { EntityItem } from "../ui/types/shared";
 
-export function getEntityListColumnsFromSchema<T extends EntityItem>(
-  schema: AnyZodObject,
-  filter?: string[]
-): QueryTableColumns<T>[] {
+export function getEntityListColumnsFromSchema<
+  T extends EntityItem,
+  U extends AnyZodObject,
+>(schema: U, keys?: (keyof U["shape"])[]): QueryTableColumns<T>[] {
   const getColumnType = (field: ZodTypeAny): TableColumnType<T>["type"] => {
     if (field instanceof z.ZodString) {
       return "string";
@@ -29,15 +29,18 @@ export function getEntityListColumnsFromSchema<T extends EntityItem>(
       return "string"; // Default type
     }
   };
-  const shape = schema.shape as ZodRawShape;
-  const fields: EntityField<T>[] = Object.entries(shape)
-    .map(([name, field]) => {
+  const shape = schema.shape as U["shape"];
+  const _keys = keys ?? Object.keys(shape);
+  const fields: EntityField<T>[] = _keys
+    .map((name) => {
+      const field = shape[name];
       const zodField = field as ZodTypeAny;
       const type = getColumnType(zodField);
-      if (filter && !filter.includes(name)) {
+      if (keys && !keys.includes(name)) {
         return null;
       }
       return {
+        key: name,
         dataIndex: name,
         title: name,
         type,
