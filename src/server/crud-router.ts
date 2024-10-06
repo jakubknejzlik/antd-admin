@@ -12,7 +12,9 @@ type CreateCrudRouteOptions<S extends z.AnyZodObject, T = z.infer<S>> = {
   tableName: string;
   defaultSelect?: SelectQuery;
   defaultValues?: () => Partial<T>;
-  onCreate?: (value: Partial<T>) => Promise<void>;
+  onCreate?: (value: T) => Promise<void>;
+  onUpdate?: (value: T) => Promise<void>;
+  onDelete?: (value: T) => Promise<void>;
   schema: S;
   runQueries: RunQueriesHandler;
 };
@@ -21,6 +23,8 @@ export const createCrudRoutes = <S extends z.AnyZodObject, T = z.infer<S>>({
   defaultSelect = Q.select().from(tableName),
   defaultValues,
   onCreate,
+  onUpdate,
+  onDelete,
   schema,
   runQueries,
 }: CreateCrudRouteOptions<S>) => {
@@ -86,6 +90,9 @@ export const createCrudRoutes = <S extends z.AnyZodObject, T = z.infer<S>>({
             message: "Record not found",
           });
         }
+        if (onUpdate) {
+          await onUpdate(result as S);
+        }
         return result as T;
       }),
     delete: publicProcedure
@@ -101,6 +108,9 @@ export const createCrudRoutes = <S extends z.AnyZodObject, T = z.infer<S>>({
           });
         }
         await runQueryFirst<T>(Q.delete(tableName).where(Cond.equal("id", id)));
+        if (onDelete) {
+          await onDelete(result as S);
+        }
         return result;
       }),
   };

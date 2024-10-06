@@ -1,10 +1,11 @@
+import { AnyObject } from "antd/es/_util/type";
 import { AnyZodObject, z, ZodRawShape, ZodTypeAny } from "zod";
 import { EntityField } from "../ui/entity/entity-fields";
-import { EntityItem } from "../ui/types/shared";
 
-export function getEntityFieldsFromSchema<T extends EntityItem>(
-  schema: AnyZodObject
-): EntityField<T>[] {
+export function getEntityFieldsFromSchema<
+  U extends AnyZodObject,
+  T extends AnyObject = z.infer<U>,
+>(schema: U): EntityField<T>[] {
   const getFieldType = (field: ZodTypeAny): EntityField<T>["type"] => {
     if (field instanceof z.ZodString) {
       return "string";

@@ -31,7 +31,7 @@ export type EntityConfig<T extends EntityItem, S extends OptionType> = {
   deleteMutationFn?: (item: T) => Promise<unknown>;
 };
 
-export class Entity<T extends EntityItem, S extends OptionType> {
+export class Entity<T extends EntityItem, S extends OptionType = any> {
   public fields: EntityField<T>[] = [];
 
   constructor(public config: EntityConfig<T, S>) {}
