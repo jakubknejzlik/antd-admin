@@ -1,6 +1,3 @@
-import { EditOutlined } from "@ant-design/icons";
-import { Link } from "@tanstack/react-router";
-import { Button } from "antd";
 import {
   QueryTableWithButtons,
   QueryTableWithButtonsProps,
@@ -14,40 +11,34 @@ export type EntityListProps<
   S extends OptionType,
 > = Partial<QueryTableWithButtonsProps<T>> & {
   entity: Entity<T, S>;
+  visibleColumns?: string[];
 };
 
 export const EntityList = <T extends EntityItem, S extends OptionType>({
   entity,
+  visibleColumns,
   ...props
 }: EntityListProps<T, S>) => {
-  const { rootRoute, list, deleteMutationFn, updateMutationFn } = entity.config;
-  const { query, buttons, ...rest } = list;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rootPath = rootRoute.to as any;
+  const { list, deleteMutationFn } = entity.config;
+  const { query, buttons, columns, ...rest } = list;
   return (
     <QueryTableWithButtons
       query={{
         queryKey: entity.getListPageQueryKey(), //[rootRoute.to, "list"],
         ...query,
       }}
-      buttons={
-        buttons || updateMutationFn
-          ? (item) => (
-              <>
-                {buttons?.(item)}
-                <Link
-                  from={rootPath}
-                  to={"./$id/edit" as string}
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  params={{ id: (item as any).id }}
-                >
-                  <Button icon={<EditOutlined />} />
-                </Link>
-              </>
-            )
-          : undefined
-      }
+      buttons={buttons}
       deleteMutationFn={deleteMutationFn}
+      columns={
+        visibleColumns === undefined
+          ? columns
+          : columns.filter(
+              (col) =>
+                col.key &&
+                (col.key === "buttons" ||
+                  visibleColumns.includes(col.key.toString()))
+            )
+      }
       {...rest}
       {...props}
     />

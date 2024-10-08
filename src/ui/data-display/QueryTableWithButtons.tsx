@@ -23,12 +23,14 @@ export const QueryTableWithButtons = <T extends EntityItem>({
   return (
     <QueryTable
       size="small"
+      scroll={{ x: true }}
       columns={[
         ...columns,
         (buttons || deleteMutationFn) &&
           ({
             key: "buttons",
             width: 20,
+            fixed: "right",
             render: (_, item) => (
               <Space>
                 {buttons?.(item)}

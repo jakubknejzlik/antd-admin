@@ -12,10 +12,10 @@ export const RawDatePicker = ({
   onChange,
   ...props
 }: IsoDatePickerProps) => {
-  const val = dayjs(value);
+  const val = value && dayjs(value);
   return (
     <DatePicker
-      value={val.isValid() ? val : undefined}
+      value={val && val.isValid() ? val : null}
       onChange={(val) => onChange?.(val?.toDate())}
       {...props}
     />

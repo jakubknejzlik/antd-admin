@@ -19,7 +19,8 @@ export function getEntityFieldsFromSchema<
       return "select";
     } else if (
       field instanceof z.ZodOptional ||
-      field instanceof z.ZodNullable
+      field instanceof z.ZodNullable ||
+      field instanceof z.ZodReadonly
     ) {
       return getFieldType(field.unwrap());
     } else {

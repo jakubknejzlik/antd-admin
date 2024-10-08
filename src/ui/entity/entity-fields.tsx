@@ -42,7 +42,7 @@ export const inputForField = <T extends EntityItem>(field: EntityField<T>) => {
     case "number":
       return <InputNumber />;
     case "date":
-      return <RawDatePicker />;
+      return <RawDatePicker showTime />;
     case "boolean":
       return <Switch />;
     case "select":

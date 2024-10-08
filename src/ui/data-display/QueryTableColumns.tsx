@@ -18,10 +18,6 @@ type DateColumnType<RecordType> = ColumnBase<RecordType> & {
   type: "date";
   format?: string;
 };
-type DateTimeColumnType<RecordType> = ColumnBase<RecordType> & {
-  type: "datetime";
-  format?: string;
-};
 type BooleanColumnType<RecordType> = ColumnBase<RecordType> & {
   type: "boolean";
 };
@@ -30,7 +26,6 @@ export type TableColumnType<RecordType> =
   | StringColumnType<RecordType>
   | NumberColumnType<RecordType>
   | DateColumnType<RecordType>
-  | DateTimeColumnType<RecordType>
   | BooleanColumnType<RecordType>;
 
 export type InitialTableColumn<RecordType> =
@@ -91,12 +86,6 @@ export const columnTypeForTableColumnType = <RecordType,>(
         ...c,
       };
     case "date":
-      return {
-        render: (value) => formatDate(value, c.format),
-        ...defaultProps,
-        ...c,
-      };
-    case "datetime":
       return {
         render: (value) => formatDate(value, c.format ?? "lll"),
         ...defaultProps,
