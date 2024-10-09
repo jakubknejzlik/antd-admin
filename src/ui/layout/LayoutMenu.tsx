@@ -19,11 +19,16 @@ export const AdminLayoutMenu = ({
   const lastMatch = matches[matches.length - 1];
 
   const selectedKeys = lastMatch
-    ? lastMatch.pathname
-        .split("/")
-        .filter((x) => x)
-        .reduce((acc, val) => [...acc, [...acc, val].join("/")], [] as string[])
-        .map((p) => "/" + p)
+    ? lastMatch.pathname === "/"
+      ? ["/"]
+      : lastMatch.pathname
+          .split("/")
+          .filter((x) => x)
+          .reduce(
+            (acc, val) => [...acc, [...acc, val].join("/")],
+            [] as string[]
+          )
+          .map((p) => "/" + p)
     : [];
 
   return (
