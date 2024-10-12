@@ -20,13 +20,22 @@ export const EntityList = <T extends EntityItem, S extends OptionType>({
   ...props
 }: EntityListProps<T, S>) => {
   const { list, deleteMutationFn } = entity.config;
-  const { query, buttons, columns, ...rest } = list;
+  const { query, columnStatsQuery, buttons, columns, ...rest } = list;
+
   return (
     <QueryTableWithButtons
       query={{
         queryKey: entity.getListPageQueryKey(), //[rootRoute.to, "list"],
         ...query,
       }}
+      columnStatsQuery={
+        columnStatsQuery
+          ? {
+              queryKey: [...entity.getListPageQueryKey(), "column-stats"],
+              ...columnStatsQuery,
+            }
+          : undefined
+      }
       buttons={buttons}
       deleteMutationFn={deleteMutationFn}
       columns={

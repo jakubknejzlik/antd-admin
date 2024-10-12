@@ -12,12 +12,14 @@ import { EntityCreatePage, EntityCreatePageProps } from "./EntityCreatePage";
 import { EntityListPage, EntityListPageProps } from "./EntityListPage";
 import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
 import { EntityField } from "./entity-fields";
+import { TableColumnStatsQuery } from "../data-display/QueryTable";
 
 type EntityListConfig<T extends EntityItem> = Omit<
   QueryTableWithButtonsProps<T>,
-  "query"
+  "query" | "columnStatsQuery"
 > & {
   query: Omit<QueryTableWithButtonsProps<T>["query"], "queryKey">;
+  columnStatsQuery?: Omit<TableColumnStatsQuery<T>, "queryKey">;
 };
 
 export type EntityConfig<T extends EntityItem, S extends OptionType> = {
@@ -96,26 +98,6 @@ export class Entity<T extends EntityItem, S extends OptionType = any> {
         />
       );
     }
-    return (
-      <QuerySelect
-        {...this.config.select}
-        // query={{
-        //   queryKey: [this.config.name, "select"],
-        //   queryFn: async () => {
-        //     const res = await this.config.table.queryFn({
-        //       sorter: [],
-        //       filters: {},
-        //       pagination: { current: 0, pageSize: 100 },
-        //     });
-        //     return res.items.map((item) => ({
-        //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        //       value: (item as any).id,
-        //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        //       label: (item as any).name,
-        //     }));
-        //   },
-        // }}
-      />
-    );
+    return <QuerySelect {...this.config.select} />;
   }
 }

@@ -1,8 +1,9 @@
 import { resolveOptionalThunkAsync, ThunkAsync } from "ts-thunk";
 import { z } from "zod";
 
-import { Cond, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
+import { Cond, Fn, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
 import { initTRPC } from "@trpc/server";
+import dayjs from "dayjs";
 import { RunQueriesHandler } from "./types";
 
 type CreateAntdRouteOptions = {
@@ -11,6 +12,11 @@ type CreateAntdRouteOptions = {
   defaultSelectQuery?: ThunkAsync<SelectQuery>;
   runQueries: RunQueriesHandler;
 };
+
+const PaginationSchema = z.object({
+  current: z.number(),
+  pageSize: z.number(),
+});
 
 const getSearchConditions = (columns: string[], search: string) => {
   const parts = search.split(" ");
@@ -39,10 +45,7 @@ export const createAntdRoutes = <T>({
     table: t.procedure
       .input(
         z.object({
-          pagination: z.object({
-            current: z.number(),
-            pageSize: z.number(),
-          }),
+          pagination: PaginationSchema,
           sorter: z.array(
             z.object({
               field: z.union([z.string(), z.number()]),
@@ -56,9 +59,11 @@ export const createAntdRoutes = <T>({
           ),
           columns: z.array(z.string()).optional(),
           search: z.string().optional(),
+          groupBy: z.array(z.string()).optional(),
         })
       )
       .query(async ({ input }) => {
+        console.log("table", input);
         const { pagination, sorter, filters, columns, search } = input;
 
         let sourceQuery = Q.select().from(
@@ -70,9 +75,28 @@ export const createAntdRoutes = <T>({
           if (values === null || values.length === 0) {
             continue;
           }
-          sourceQuery =
-            sourceQuery.where(Cond.in(field, values)) ??
-            Q.select().from(tableName);
+          // TODO: handle range filters better than length === 2 with specific value types (eg. introduce >, <, >=, <= for filtering)
+          if (
+            values.length === 2 &&
+            typeof values[0] === "number" &&
+            typeof values[1] === "number"
+          ) {
+            sourceQuery = sourceQuery.where(
+              Cond.between(field, values as [number, number])
+            );
+          } else if (
+            values.length === 2 &&
+            typeof values[0] === "string" &&
+            dayjs(values[0]).isValid() &&
+            typeof values[1] === "string" &&
+            dayjs(values[1]).isValid()
+          ) {
+            sourceQuery = sourceQuery.where(
+              Cond.between(field, values as [string, string])
+            );
+          } else {
+            sourceQuery = sourceQuery.where(Cond.in(field, values));
+          }
         }
 
         if (search && columns) {
@@ -93,6 +117,7 @@ export const createAntdRoutes = <T>({
           query = query.orderBy(field, order === "ascend" ? "ASC" : "DESC");
         }
 
+        console.log(query.toSQL());
         const [results, count] = await runQueries<T>([
           query,
           Q.select().from(sourceQuery).addField("count(*)", "total"),
@@ -103,8 +128,14 @@ export const createAntdRoutes = <T>({
         };
       }),
     select: t.procedure
-      .input(z.object({ search: z.string().optional() }))
+      .input(
+        z.object({
+          search: z.string().optional(),
+          pagination: PaginationSchema.optional(),
+        })
+      )
       .query(async ({ input }) => {
+        const { search, pagination } = input;
         const selectQuery = Q.select().from(
           (await resolveOptionalThunkAsync(defaultSelectQuery)) ??
             (await resolveOptionalThunkAsync(defaultQuery)) ??
@@ -113,22 +144,83 @@ export const createAntdRoutes = <T>({
               .addField("id", "value")
               .addField("name", "label")
         );
-        let query = selectQuery.limit(100);
+        let query = selectQuery;
 
-        if (input.search) {
+        if (search) {
           query = Q.select()
             .from(query)
-            .where(getSearchConditions(["label"], input.search));
+            .where(getSearchConditions(["label"], search));
+        }
+
+        const queryWithoutPagination = query;
+        if (pagination) {
+          query = query
+            .limit(pagination.pageSize)
+            .offset((pagination.current - 1) * pagination.pageSize);
+        } else {
+          query = query.limit(100);
         }
 
         const [results, count] = await runQueries<{
           value: string;
           label: string;
-        }>([query, Q.select().from(query).addField("count(*)", "total")]);
+        }>([
+          query,
+          Q.select().from(queryWithoutPagination).addField("count(*)", "total"),
+        ]);
 
         return {
           items: results?.results ?? [],
           total: (count?.results[0] as { total?: number }).total ?? 0,
+        };
+      }),
+    columnStats: t.procedure
+      .input(
+        z.object({
+          column: z.string(),
+          pagination: PaginationSchema.optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const { column, pagination } = input;
+        const selectQuery = Q.select().from(
+          (await resolveOptionalThunkAsync(defaultQuery)) ??
+            Q.select().from(tableName).addField(column)
+        );
+
+        let query = Q.select()
+          .from(selectQuery)
+          .addField(column, "value")
+          .groupBy(column)
+          .orderBy(column);
+
+        const queryWithoutPagination = query;
+        if (pagination) {
+          query = query
+            .limit(pagination.pageSize)
+            .offset((pagination.current - 1) * pagination.pageSize);
+        } else {
+          query = query.limit(100);
+        }
+
+        const [results, count, minMax] = await runQueries<{
+          value: unknown;
+        }>([
+          query,
+          Q.select().from(queryWithoutPagination).addField("count(*)", "total"),
+          Q.select()
+            .from(queryWithoutPagination)
+            .addField(Fn.min("value"), "min")
+            .addField(Fn.max("value"), "max"),
+        ]);
+
+        const { min, max } =
+          (minMax?.results[0] as { min?: unknown; max?: unknown }) ?? {};
+        return {
+          values: results?.results.map((item) => item.value) ?? [],
+          valuesTotal: (count?.results[0] as { total?: number }).total ?? 0,
+          min,
+          max,
         };
       }),
   };

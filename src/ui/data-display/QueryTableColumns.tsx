@@ -1,10 +1,14 @@
+import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { ColumnGroupType, ColumnType } from "antd/es/table";
 import { formatDate } from "../functions/date";
 import { formatNumber } from "../functions/numeral";
+import { EntityItem } from "../types/shared";
+import { BooleanColumnFilterDropdown } from "./filter-dropdowns/BooleanColumnFilterDropdown";
 import { ColumnFilterDropdown } from "./filter-dropdowns/ColumnFilterDropdown";
+import { NumberColumnFilterDropdown } from "./filter-dropdowns/NumberColumnFilterDropdown";
 import { StringColumnFilterDropdown } from "./filter-dropdowns/StringColumnFilterDropdown";
-import { QueryTableState } from "./QueryTable";
-import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
+import { QueryTableState, TableColumnStatsQuery } from "./QueryTable";
+import { DateColumnFilterDropdown } from "./filter-dropdowns/DateColumnFilterDropdown";
 
 type ColumnBase<RecordType> = ColumnType<RecordType>;
 type StringColumnType<RecordType> = ColumnBase<RecordType> & {
@@ -36,14 +40,18 @@ export type TableColumn<RecordType> =
   | InitialTableColumn<RecordType>
   | TableColumnType<RecordType>;
 
-export const columnTypeForTableColumnType = <RecordType,>(
+export const columnTypeForTableColumnType = <RecordType extends EntityItem>(
+  column: string | undefined,
   c: TableColumn<RecordType>,
-  state: QueryTableState
+  state: QueryTableState,
+  columnStatQuery?: TableColumnStatsQuery<RecordType>
 ): InitialTableColumn<RecordType> => {
   if ("children" in c) {
     const { children, ...rest } = c;
     return {
-      children: children.map((c) => columnTypeForTableColumnType(c, state)),
+      children: children.map((c) =>
+        columnTypeForTableColumnType(column, c, state, columnStatQuery)
+      ),
       ...rest,
     };
   }
@@ -51,9 +59,7 @@ export const columnTypeForTableColumnType = <RecordType,>(
     sorter: true,
     sortOrder: state.sorter.find((s) => s.field === c.dataIndex)?.order,
     showSorterTooltip: false,
-    filteredValue: c.dataIndex
-      ? state.filters[c.dataIndex.toString()]
-      : undefined,
+    filteredValue: c.dataIndex ? state.filters[c.dataIndex.toString()] : [],
     filterDropdown: (props) => {
       const { selectedKeys, setSelectedKeys } = props;
       return (
@@ -61,8 +67,13 @@ export const columnTypeForTableColumnType = <RecordType,>(
           <StringColumnFilterDropdown
             value={selectedKeys}
             onChange={(value) => {
-              setSelectedKeys(value);
+              setSelectedKeys(value as React.Key[]);
             }}
+            columnStatQuery={
+              columnStatQuery && column
+                ? { ...columnStatQuery, column }
+                : undefined
+            }
           />
         </ColumnFilterDropdown>
       );
@@ -76,8 +87,27 @@ export const columnTypeForTableColumnType = <RecordType,>(
   switch (c.type) {
     case "number":
       return {
-        render: (value) => formatNumber(value, c.format),
         ...defaultProps,
+        align: "right",
+        render: (value) => formatNumber(value, c.format),
+        filterDropdown: (props) => {
+          const { selectedKeys, setSelectedKeys } = props;
+          return (
+            <ColumnFilterDropdown orientation="vertical" {...props}>
+              <NumberColumnFilterDropdown
+                value={selectedKeys}
+                onChange={(value) => {
+                  setSelectedKeys(value as React.Key[]);
+                }}
+                columnStatQuery={
+                  columnStatQuery && column
+                    ? { ...columnStatQuery, column }
+                    : undefined
+                }
+              />
+            </ColumnFilterDropdown>
+          );
+        },
         ...c,
       };
     case "string":
@@ -87,14 +117,47 @@ export const columnTypeForTableColumnType = <RecordType,>(
       };
     case "date":
       return {
-        render: (value) => formatDate(value, c.format ?? "lll"),
         ...defaultProps,
+        align: "center",
+        render: (value) => formatDate(value, c.format ?? "lll"),
+        filterDropdown: (props) => {
+          const { selectedKeys, setSelectedKeys } = props;
+          return (
+            <ColumnFilterDropdown {...props}>
+              <DateColumnFilterDropdown
+                value={selectedKeys}
+                onChange={(value) => {
+                  setSelectedKeys(value as React.Key[]);
+                }}
+                columnStatQuery={
+                  columnStatQuery && column
+                    ? { ...columnStatQuery, column }
+                    : undefined
+                }
+              />
+            </ColumnFilterDropdown>
+          );
+        },
         ...c,
       };
     case "boolean":
       return {
-        render: (value) => (value ? <CheckOutlined /> : <CloseOutlined />),
         ...defaultProps,
+        align: "center",
+        render: (value) => (value ? <CheckOutlined /> : <CloseOutlined />),
+        filterDropdown: (props) => {
+          const { selectedKeys, setSelectedKeys } = props;
+          return (
+            <ColumnFilterDropdown {...props}>
+              <BooleanColumnFilterDropdown
+                value={selectedKeys}
+                onChange={(value) => {
+                  setSelectedKeys(value as React.Key[]);
+                }}
+              />
+            </ColumnFilterDropdown>
+          );
+        },
         ...c,
       };
   }

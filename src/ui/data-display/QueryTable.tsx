@@ -33,13 +33,34 @@ type TableData<T> = {
   total: number;
 };
 
+type TableQueryQueryState = QueryTableState & { search?: string };
+
 export type TableQueryQuery<T> = Omit<
   UseQueryOptions<TableData<T>, Error, TableData<T>, QueryKey>,
   "queryFn"
 > & {
-  queryFn: (
-    state: QueryTableState & { search?: string }
-  ) => Promise<TableData<T>>;
+  queryFn: (state: TableQueryQueryState) => Promise<TableData<T>>;
+};
+
+type TableColumnStats<T> = {
+  values: T[];
+  valuesTotal: number;
+  min: T;
+  max: T;
+};
+
+export type TableColumnStatsQuery<
+  T extends EntityItem,
+  C = keyof T,
+  V = any, // = T[C]
+> = Omit<
+  UseQueryOptions<TableColumnStats<V>, Error, TableColumnStats<V>, QueryKey>,
+  "queryFn"
+> & {
+  queryFn: (input: {
+    column: C;
+    pagination: Required<Pick<TablePaginationConfig, "current" | "pageSize">>;
+  }) => Promise<TableColumnStats<V>>;
 };
 
 export type QueryTableProps<T extends EntityItem> = Omit<
@@ -47,6 +68,7 @@ export type QueryTableProps<T extends EntityItem> = Omit<
   "columns"
 > & {
   query: TableQueryQuery<T>;
+  columnStatsQuery?: TableColumnStatsQuery<T>;
   columns: QueryTableColumns<T>[];
   defaultState?: Partial<QueryTableState>;
   search?: string;
@@ -81,7 +103,7 @@ export const QueryTable = <T extends AnyObject>({
     ...restQuery,
   });
 
-  const { pagination, loading, ...rest } = props;
+  const { pagination, loading, columnStatsQuery, ...rest } = props;
   return (
     <Table<T>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +129,12 @@ export const QueryTable = <T extends AnyObject>({
       rowKey={(row) => `${row["id"]}`}
       columns={[
         ...columns.map((col) => {
-          return columnTypeForTableColumnType<T>(col, state);
+          return columnTypeForTableColumnType<T>(
+            col.key?.toString(),
+            col,
+            state,
+            columnStatsQuery
+          );
         }),
       ]}
       onChange={(pagination, filters, sorter) => {

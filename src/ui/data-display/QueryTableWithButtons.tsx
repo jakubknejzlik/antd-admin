@@ -31,6 +31,8 @@ export const QueryTableWithButtons = <T extends EntityItem>({
             key: "buttons",
             width: 20,
             fixed: "right",
+            sorter: false,
+            filterDropdown: null,
             render: (_, item) => (
               <Space>
                 {buttons?.(item)}
