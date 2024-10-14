@@ -13,24 +13,22 @@ import { EntityListPage, EntityListPageProps } from "./EntityListPage";
 import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
 import { EntityField } from "./entity-fields";
 import { TableColumnStatsQuery } from "../data-display/QueryTable";
+import { EntityDataSource } from "./entity-datasource";
 
 type EntityListConfig<T extends EntityItem> = Omit<
   QueryTableWithButtonsProps<T>,
   "query" | "columnStatsQuery"
 > & {
-  query: Omit<QueryTableWithButtonsProps<T>["query"], "queryKey">;
-  columnStatsQuery?: Omit<TableColumnStatsQuery<T>, "queryKey">;
+  query?: Omit<QueryTableWithButtonsProps<T>["query"], "queryKey" | "queryFn">;
+  columnStatsQuery?: Omit<TableColumnStatsQuery<T>, "queryKey" | "queryFn">;
 };
 
 export type EntityConfig<T extends EntityItem, S extends OptionType> = {
   name: string;
   rootRoute: LinkProps;
   list: EntityListConfig<T>;
+  dataSource: EntityDataSource<T>;
   select?: QuerySelectProps<S>;
-  getQueryFn?: (id: string) => Promise<T | null>;
-  createMutationFn?: (values: T) => Promise<T>;
-  updateMutationFn?: (id: string, values: T) => Promise<T>;
-  deleteMutationFn?: (item: T) => Promise<unknown>;
 };
 
 export class Entity<T extends EntityItem, S extends OptionType = any> {

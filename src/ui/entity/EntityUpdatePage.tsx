@@ -25,10 +25,14 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   card,
   ...props
 }: EntityUpdatePageProps<T, S>) => {
-  const { name, rootRoute, getQueryFn, updateMutationFn } = entity.config;
+  const { name, rootRoute, dataSource } = entity.config;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const _fields = fields ?? entity.fields;
+
+  const getQueryFn = dataSource.getQueryFn;
+  const updateMutationFn = dataSource.updateMutationFn;
+
   return (
     <Page>
       <Card title={`Update ${name}`} {...card}>
@@ -37,7 +41,7 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
             queryKey: [name, "get", { id }],
             queryFn: getQueryFn
               ? () => {
-                  return getQueryFn?.(id);
+                  return getQueryFn(id);
                 }
               : undefined,
           }}

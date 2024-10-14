@@ -21,7 +21,7 @@ export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
   fields,
   card,
 }: EntityCreatePageProps<T, S>) => {
-  const { name, rootRoute, createMutationFn } = entity.config;
+  const { name, rootRoute, dataSource } = entity.config;
   const _fields = fields ?? entity.fields;
   const navigate = useNavigate();
   return (
@@ -29,7 +29,7 @@ export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
       <Card title={`Create new ${name}`} {...card}>
         <QueryForm
           mutation={{
-            mutationFn: createMutationFn,
+            mutationFn: dataSource.createMutationFn,
             onSuccess: () => {
               navigate(rootRoute);
             },
