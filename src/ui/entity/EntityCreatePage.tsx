@@ -29,7 +29,7 @@ export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
       <Card title={`Create new ${name}`} {...card}>
         <QueryForm
           mutation={{
-            mutationFn: dataSource.createMutationFn,
+            mutationFn: dataSource.crud?.createMutationFn,
             onSuccess: () => {
               navigate(rootRoute);
             },

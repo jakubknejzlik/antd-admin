@@ -41,9 +41,11 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
               value={state.search}
               onChange={(search) => setState((state) => ({ ...state, search }))}
             />
-            <Link from={rootPath} to={"./new" as string}>
-              <Button icon={<PlusOutlined />} />
-            </Link>
+            {entity.canCreate() && (
+              <Link from={rootPath} to={"./new" as string}>
+                <Button icon={<PlusOutlined />} />
+              </Link>
+            )}
           </Space>
         }
         styles={{ body: { padding: 0 } }}

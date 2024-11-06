@@ -30,8 +30,8 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   const queryClient = useQueryClient();
   const _fields = fields ?? entity.fields;
 
-  const getQueryFn = dataSource.getQueryFn;
-  const updateMutationFn = dataSource.updateMutationFn;
+  const getQueryFn = dataSource.crud?.getQueryFn;
+  const updateMutationFn = dataSource.crud?.updateMutationFn;
 
   return (
     <Page>

@@ -1,16 +1,15 @@
-import { resolveOptionalThunkAsync, ThunkAsync } from "ts-thunk";
 import { z } from "zod";
 
-import { Cond, Fn, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
 import { initTRPC } from "@trpc/server";
-import dayjs from "dayjs";
-import { RunQueriesHandler } from "./types";
+import { AnyMiddlewareBuilder } from "@trpc/server/unstable-core-do-not-import";
 
-type CreateAntdRouteOptions = {
-  tableName: string;
-  defaultQuery?: ThunkAsync<SelectQuery>;
-  defaultSelectQuery?: ThunkAsync<SelectQuery>;
-  runQueries: RunQueriesHandler;
+export type TableResult<T> = { items: T[]; total: number };
+type SelectResult = { items: any[]; total: number };
+type ColumnStatsResult = {
+  values: any[];
+  valuesTotal: number;
+  min: any;
+  max: any;
 };
 
 const PaginationSchema = z.object({
@@ -18,210 +17,77 @@ const PaginationSchema = z.object({
   pageSize: z.number(),
 });
 
-const getSearchConditions = (columns: string[], search: string) => {
-  const parts = search.split(" ");
-  const or = [];
-  for (const part of parts) {
-    for (const column of columns) {
-      or.push(Cond.like(column, `${part}%`));
-      or.push(Cond.like(column, `% ${part}%`));
-      or.push(Cond.like(column, `%-${part}%`));
-      or.push(Cond.like(column, `%_${part}%`));
-    }
-  }
-  return Cond.or(or);
+const TableInputSchema = z.object({
+  pagination: PaginationSchema,
+  sorter: z.array(
+    z.object({
+      field: z.union([z.string(), z.number()]),
+      order: z.enum(["ascend", "descend"]),
+    })
+  ),
+  filters: z.record(
+    z
+      .array(z.union([z.string(), z.boolean(), z.number(), z.bigint()]))
+      .nullable()
+  ),
+  columns: z.array(z.string()).optional(),
+  search: z.string().optional(),
+  groupBy: z.array(z.string()).optional(),
+});
+
+const SelectInputSchema = z.object({
+  search: z.string().optional(),
+  pagination: PaginationSchema.optional(),
+});
+const ColumnStatsInputSchema = z.object({
+  column: z.string(),
+  pagination: PaginationSchema.optional(),
+});
+
+type CreateAntdRouteOptions<T> = {
+  middleware?: AnyMiddlewareBuilder;
+  tableHandlerFn?: (
+    query: z.infer<typeof TableInputSchema>
+  ) => Promise<TableResult<T>>;
+  selectHandlerFn?: (
+    query: z.infer<typeof SelectInputSchema>
+  ) => Promise<SelectResult>;
+  columnStatsHandlerFn?: (
+    query: z.infer<typeof ColumnStatsInputSchema>
+  ) => Promise<ColumnStatsResult>;
 };
 
 const t = initTRPC.create();
 
 export const createAntdRoutes = <T>({
-  tableName,
-  defaultQuery,
-  defaultSelectQuery,
-  runQueries,
-}: CreateAntdRouteOptions) => {
-  // procedure.input(z.object({ pagination: z.object({ current: z.number(), pageSize: z.number() }) }));
+  middleware,
+  tableHandlerFn,
+  selectHandlerFn,
+  columnStatsHandlerFn,
+}: CreateAntdRouteOptions<T>) => {
+  const procedure = middleware ? t.procedure.use(middleware) : t.procedure;
   return {
-    table: t.procedure
-      .input(
-        z.object({
-          pagination: PaginationSchema,
-          sorter: z.array(
-            z.object({
-              field: z.union([z.string(), z.number()]),
-              order: z.enum(["ascend", "descend"]),
-            })
-          ),
-          filters: z.record(
-            z
-              .array(z.union([z.string(), z.boolean(), z.number(), z.bigint()]))
-              .nullable()
-          ),
-          columns: z.array(z.string()).optional(),
-          search: z.string().optional(),
-          groupBy: z.array(z.string()).optional(),
-        })
-      )
-      .query(async ({ input }) => {
-        console.log("table", input);
-        const { pagination, sorter, filters, columns, search } = input;
-
-        let sourceQuery = Q.select().from(
-          (await resolveOptionalThunkAsync(defaultQuery)) ??
-            Q.select().from(tableName)
-        );
-
-        for (const [field, values] of Object.entries(filters)) {
-          if (values === null || values.length === 0) {
-            continue;
-          }
-          // TODO: handle range filters better than length === 2 with specific value types (eg. introduce >, <, >=, <= for filtering)
-          if (
-            values.length === 2 &&
-            typeof values[0] === "number" &&
-            typeof values[1] === "number"
-          ) {
-            sourceQuery = sourceQuery.where(
-              Cond.between(field, values as [number, number])
-            );
-          } else if (
-            values.length === 2 &&
-            typeof values[0] === "string" &&
-            dayjs(values[0]).isValid() &&
-            typeof values[1] === "string" &&
-            dayjs(values[1]).isValid()
-          ) {
-            sourceQuery = sourceQuery.where(
-              Cond.between(field, values as [string, string])
-            );
-          } else {
-            sourceQuery = sourceQuery.where(Cond.in(field, values));
-          }
-        }
-
-        if (search && columns) {
-          sourceQuery = sourceQuery.where(getSearchConditions(columns, search));
-        }
-
-        let query = sourceQuery
-          .limit(pagination.pageSize)
-          .offset((pagination.current - 1) * pagination.pageSize);
-
-        if (columns) {
-          query = query.addField("id");
-          for (const column of columns) {
-            query = query.addField(column);
-          }
-        }
-        for (const { field, order } of sorter) {
-          query = query.orderBy(field, order === "ascend" ? "ASC" : "DESC");
-        }
-
-        console.log(query.toSQL());
-        const [results, count] = await runQueries<T>([
-          query,
-          Q.select().from(sourceQuery).addField("count(*)", "total"),
-        ]);
-        return {
-          items: results?.results ?? [],
-          total: (count?.results[0] as { total?: number }).total ?? 0,
-        };
+    table: procedure
+      .input(TableInputSchema)
+      .query(async ({ input }): Promise<TableResult<T>> => {
+        return (await tableHandlerFn?.(input)) ?? { items: [], total: 0 };
       }),
-    select: t.procedure
-      .input(
-        z.object({
-          search: z.string().optional(),
-          pagination: PaginationSchema.optional(),
-        })
-      )
-      .query(async ({ input }) => {
-        const { search, pagination } = input;
-        const selectQuery = Q.select().from(
-          (await resolveOptionalThunkAsync(defaultSelectQuery)) ??
-            (await resolveOptionalThunkAsync(defaultQuery)) ??
-            Q.select()
-              .from(tableName)
-              .addField("id", "value")
-              .addField("name", "label")
-        );
-        let query = selectQuery;
-
-        if (search) {
-          query = Q.select()
-            .from(query)
-            .where(getSearchConditions(["label"], search));
-        }
-
-        const queryWithoutPagination = query;
-        if (pagination) {
-          query = query
-            .limit(pagination.pageSize)
-            .offset((pagination.current - 1) * pagination.pageSize);
-        } else {
-          query = query.limit(100);
-        }
-
-        const [results, count] = await runQueries<{
-          value: string;
-          label: string;
-        }>([
-          query,
-          Q.select().from(queryWithoutPagination).addField("count(*)", "total"),
-        ]);
-
-        return {
-          items: results?.results ?? [],
-          total: (count?.results[0] as { total?: number }).total ?? 0,
-        };
+    select: procedure
+      .input(SelectInputSchema)
+      .query(async ({ input }): Promise<SelectResult> => {
+        return (await selectHandlerFn?.(input)) ?? { items: [], total: 0 };
       }),
-    columnStats: t.procedure
-      .input(
-        z.object({
-          column: z.string(),
-          pagination: PaginationSchema.optional(),
-        })
-      )
-      .query(async ({ input }) => {
-        const { column, pagination } = input;
-        const selectQuery = Q.select().from(
-          (await resolveOptionalThunkAsync(defaultQuery)) ??
-            Q.select().from(tableName).addField(column)
+    columnStats: procedure
+      .input(ColumnStatsInputSchema)
+      .query(async ({ input }): Promise<ColumnStatsResult> => {
+        return (
+          (await columnStatsHandlerFn?.(input)) ?? {
+            values: [],
+            valuesTotal: 0,
+            min: null,
+            max: null,
+          }
         );
-
-        let query = Q.select()
-          .from(selectQuery)
-          .addField(column, "value")
-          .groupBy(column)
-          .orderBy(column);
-
-        const queryWithoutPagination = query;
-        if (pagination) {
-          query = query
-            .limit(pagination.pageSize)
-            .offset((pagination.current - 1) * pagination.pageSize);
-        } else {
-          query = query.limit(100);
-        }
-
-        const [results, count, minMax] = await runQueries<{
-          value: unknown;
-        }>([
-          query,
-          Q.select().from(queryWithoutPagination).addField("count(*)", "total"),
-          Q.select()
-            .from(queryWithoutPagination)
-            .addField(Fn.min("value"), "min")
-            .addField(Fn.max("value"), "max"),
-        ]);
-
-        const { min, max } =
-          (minMax?.results[0] as { min?: unknown; max?: unknown }) ?? {};
-        return {
-          values: results?.results.map((item) => item.value) ?? [],
-          valuesTotal: (count?.results[0] as { total?: number }).total ?? 0,
-          min,
-          max,
-        };
       }),
   };
 };

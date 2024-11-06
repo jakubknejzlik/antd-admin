@@ -1,3 +1,4 @@
+import { TableData } from "../data-display/QueryTable";
 import {
   QueryTableWithButtons,
   QueryTableWithButtonsProps,
@@ -23,39 +24,48 @@ export const EntityList = <T extends EntityItem, S extends OptionType>({
   const { query, columnStatsQuery, buttons, columns, ...rest } = list;
 
   const listQueryFn = dataSource.listQueryFn;
+  const crudListQueryFn = dataSource.crud?.listQueryFn;
   const columnStatsQueryFn = dataSource.listColumnStatsQueryFn;
-  const deleteMutationFn = dataSource.deleteMutationFn;
+  const deleteMutationFn = dataSource.crud?.deleteMutationFn;
 
   return (
-    <QueryTableWithButtons
-      query={{
-        queryKey: entity.getListPageQueryKey(), //[rootRoute.to, "list"],
-        queryFn: listQueryFn,
-        ...query,
-      }}
-      columnStatsQuery={
-        columnStatsQuery
-          ? {
-              queryKey: [...entity.getListPageQueryKey(), "column-stats"],
-              queryFn: columnStatsQueryFn,
-              ...columnStatsQuery,
+    (listQueryFn || crudListQueryFn) && (
+      <QueryTableWithButtons
+        query={{
+          queryKey: entity.getListPageQueryKey(), //[rootRoute.to, "list"],
+          queryFn: async (args): Promise<TableData<T>> => {
+            if (crudListQueryFn) {
+              const items = await crudListQueryFn();
+              return { items, total: items.length };
             }
-          : undefined
-      }
-      buttons={buttons}
-      deleteMutationFn={deleteMutationFn}
-      columns={
-        visibleColumns === undefined
-          ? columns
-          : columns.filter(
-              (col) =>
-                col.key &&
-                (col.key === "buttons" ||
-                  visibleColumns.includes(col.key.toString()))
-            )
-      }
-      {...rest}
-      {...props}
-    />
+            return listQueryFn!(args);
+          },
+          ...query,
+        }}
+        columnStatsQuery={
+          columnStatsQuery && columnStatsQueryFn
+            ? {
+                queryKey: [...entity.getListPageQueryKey(), "column-stats"],
+                queryFn: columnStatsQueryFn,
+                ...columnStatsQuery,
+              }
+            : undefined
+        }
+        buttons={buttons}
+        deleteMutationFn={deleteMutationFn}
+        columns={
+          visibleColumns === undefined
+            ? columns
+            : columns.filter(
+                (col) =>
+                  col.key &&
+                  (col.key === "buttons" ||
+                    visibleColumns.includes(col.key.toString()))
+              )
+        }
+        {...rest}
+        {...props}
+      />
+    )
   );
 };

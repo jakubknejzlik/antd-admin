@@ -1,89 +1,118 @@
 import { z } from "zod";
 
-import { Cond, ISerializable, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
-
 import { initTRPC, TRPCError } from "@trpc/server";
-import { RunQueriesHandler } from "./types";
+import { AnyMiddlewareBuilder } from "@trpc/server/unstable-core-do-not-import";
 
 const t = initTRPC.create();
-const publicProcedure = t.procedure;
 
-type CreateCrudRouteOptions<S extends z.AnyZodObject, T = z.infer<S>> = {
-  tableName: string;
-  defaultSelect?: SelectQuery;
-  defaultValues?: () => Partial<T>;
+const detailInputSchema = z.object({ id: z.string() });
+
+export type CreateCrudRouteOptions<
+  S extends z.AnyZodObject,
+  T extends z.infer<S>,
+> = {
+  middleware?: AnyMiddlewareBuilder;
+  schema: S;
+  defaultValues?: () => Promise<Partial<T>>;
   onCreate?: (value: T) => Promise<void>;
   onUpdate?: (value: T) => Promise<void>;
   onDelete?: (value: T) => Promise<void>;
-  schema: S;
-  runQueries: RunQueriesHandler;
 };
-export const createCrudRoutes = <S extends z.AnyZodObject, T = z.infer<S>>({
-  tableName,
-  defaultSelect = Q.select().from(tableName),
+
+type CreateCrudRouteHandlers<S extends z.AnyZodObject, T extends z.infer<S>> = {
+  listHandlerFn?: () => Promise<T[]>;
+  getHandlerFn?: (
+    input: z.infer<typeof detailInputSchema>
+  ) => Promise<T | null>;
+  defaultValues?: () => Promise<Partial<T>>;
+  createHandlerFn?: (input: Omit<T, "id">) => Promise<T>;
+  updateHandlerFn?: (
+    input: { id: string } & Partial<Omit<T, "id">>
+  ) => Promise<T | null>;
+  deleteHandlerFn?: (
+    input: z.infer<typeof detailInputSchema>
+  ) => Promise<T | null>;
+};
+
+export const createCrudRoutes = <
+  S extends z.AnyZodObject,
+  T extends z.infer<S>,
+>({
   defaultValues,
+  listHandlerFn,
+  getHandlerFn,
+  createHandlerFn,
+  updateHandlerFn,
+  deleteHandlerFn,
   onCreate,
   onUpdate,
   onDelete,
   schema,
-  runQueries,
-}: CreateCrudRouteOptions<S>) => {
-  const runQueryAll = async <T>(query: ISerializable): Promise<Array<T>> => {
-    const results = await runQueries([query]);
-    return results[0]?.results as T[];
-  };
-
-  const runQueryFirst = async <T>(query: ISerializable): Promise<T | null> => {
-    const results = await runQueries([query]);
-    return (results[0]?.results?.[0] ?? null) as T | null;
-  };
-
+  middleware,
+}: CreateCrudRouteOptions<S, T> & CreateCrudRouteHandlers<S, T>) => {
+  const procedure = middleware ? t.procedure.use(middleware) : t.procedure;
   return {
-    list: publicProcedure.query(async () => {
-      const results = await runQueryAll<T>(defaultSelect);
-      return results;
+    list: procedure.query(async () => {
+      if (!listHandlerFn) {
+        throw new TRPCError({
+          code: "NOT_IMPLEMENTED",
+          message: "handler not implemented",
+        });
+      }
+      return listHandlerFn();
     }),
-    get: publicProcedure
+    get: procedure
       .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
-        return runQueryFirst<T>(
-          Q.select()
-            .from(defaultSelect, "t")
-            .where(Cond.equal("t.id", input.id))
-        );
+        if (!getHandlerFn) {
+          throw new TRPCError({
+            code: "NOT_IMPLEMENTED",
+            message: "handler not implemented",
+          });
+        }
+        const result = await getHandlerFn(input);
+        if (!result) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Record not found",
+          });
+        }
+        return result;
       }),
-    create: publicProcedure
+    create: procedure
       .input(schema.omit({ id: true }))
       .mutation(async ({ input }) => {
-        const values = { ...defaultValues?.(), ...input };
-        await runQueryFirst<T>(Q.insert(tableName).values([values]));
-        // TODO handle returning new item
-        const res = await runQueryFirst<T>(
-          Q.select().from(tableName).where(Cond.equal("id", values["id"]))
-        );
-        if (onCreate) {
-          await onCreate(values as S);
+        if (!createHandlerFn) {
+          throw new TRPCError({
+            code: "NOT_IMPLEMENTED",
+            message: "handler not implemented",
+          });
         }
-        return res as T;
+        const values = { ...(await defaultValues?.()), ...input };
+        const res = await createHandlerFn(values as Omit<T, "id">);
+        if (onCreate) {
+          await onCreate(res);
+        }
+        return res;
       }),
-    update: publicProcedure
-      .input(z.object({ id: z.string() }).merge(schema.partial()))
+    update: procedure
+      .input(schema.omit({ id: true }).partial().extend({ id: z.string() }))
       .mutation(async ({ input: { id, ...input } }) => {
+        if (!updateHandlerFn) {
+          throw new TRPCError({
+            code: "NOT_IMPLEMENTED",
+            message: "handler not implemented",
+          });
+        }
         if (Object.keys(input).length === 0) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "No fields to update",
           });
         }
-        const query = Q.update(tableName)
-          .set(input)
-          .where(Cond.equal("id", id));
-        console.log("?", query.toSQL());
-        await runQueryFirst<T>(query);
-        // TODO handle returning updated item
-        const result = await runQueryFirst<T>(
-          Q.select().from(tableName).where(Cond.equal("id", id))
-        );
+        const result = await updateHandlerFn({ id, ...input } as {
+          id: string;
+        } & Partial<Omit<T, "id">>);
         if (!result) {
           throw new TRPCError({
             code: "NOT_FOUND",
@@ -91,27 +120,28 @@ export const createCrudRoutes = <S extends z.AnyZodObject, T = z.infer<S>>({
           });
         }
         if (onUpdate) {
-          await onUpdate(result as S);
+          await onUpdate(result as T);
         }
         return result as T;
       }),
-    delete: publicProcedure
-      .input(z.object({ id: z.string() }))
-      .mutation(async ({ input: { id } }) => {
-        const result = await runQueryFirst<T>(
-          Q.select().from(defaultSelect).where(Cond.equal("id", id))
-        );
-        if (!result) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Record not found",
-          });
-        }
-        await runQueryFirst<T>(Q.delete(tableName).where(Cond.equal("id", id)));
-        if (onDelete) {
-          await onDelete(result as S);
-        }
-        return result;
-      }),
+    delete: procedure.input(detailInputSchema).mutation(async ({ input }) => {
+      if (!deleteHandlerFn) {
+        throw new TRPCError({
+          code: "NOT_IMPLEMENTED",
+          message: "handler not implemented",
+        });
+      }
+      const result = await deleteHandlerFn(input);
+      if (!result) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Record not found",
+        });
+      }
+      if (onDelete) {
+        await onDelete(result as T);
+      }
+      return result;
+    }),
   };
 };

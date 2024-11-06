@@ -28,7 +28,7 @@ export type QueryTableState = {
   columns: string[];
 };
 
-type TableData<T> = {
+export type TableData<T> = {
   items: T[];
   total: number;
 };

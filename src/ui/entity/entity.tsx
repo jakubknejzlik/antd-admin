@@ -43,6 +43,16 @@ export class Entity<T extends EntityItem, S extends OptionType = any> {
     return clone;
   }
 
+  public canCreate(): boolean {
+    return !!this.config.dataSource.crud?.createMutationFn;
+  }
+  public canUpdate(): boolean {
+    return !!this.config.dataSource.crud?.updateMutationFn;
+  }
+  public canDelete(): boolean {
+    return !!this.config.dataSource.crud?.deleteMutationFn;
+  }
+
   public addField(field: EntityField<T>): this {
     return this.addFields([field]);
   }
