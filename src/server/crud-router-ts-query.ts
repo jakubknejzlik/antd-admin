@@ -46,22 +46,17 @@ export const createTsQueryCrudRoutes = <
     },
     createHandlerFn: async ({ ...input }) => {
       const values = { ...(await defaultValues?.()), ...input };
-      const result = await runQueryFirst(Q.insert(tableName).values([values]));
+      await runQueryFirst(Q.insert(tableName).values([values]));
 
-      if (!result) {
-        throw new Error("Failed to create record");
-      }
-
-      // TODO handle returning new item
       const res = await runQueryFirst(
         Q.select()
           .from(defaultSelect, "t")
-          .where(Cond.equal("t.id", (result as any)["id"]))
+          .where(Cond.equal("t.id", (values as any)["id"])) // assuming id is always present (from defaultValues)
       );
       if (!res) {
         throw new Error("Failed to find created record");
       }
-      return res;
+      return res as T;
     },
     updateHandlerFn: async ({ id, ...input }) => {
       const query = Q.update(tableName).set(input).where(Cond.equal("id", id));
