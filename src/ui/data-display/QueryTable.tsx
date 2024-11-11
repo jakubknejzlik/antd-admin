@@ -1,5 +1,10 @@
 import { ReloadOutlined } from "@ant-design/icons";
-import { QueryKey, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryFunctionContext,
+  QueryKey,
+  useQuery,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   Alert,
   Button,
@@ -33,34 +38,38 @@ export type TableData<T> = {
   total: number;
 };
 
-type TableQueryQueryState = QueryTableState & { search?: string };
+export type TableQueryQueryState = QueryTableState & { search?: string };
 
 export type TableQueryQuery<T> = Omit<
   UseQueryOptions<TableData<T>, Error, TableData<T>, QueryKey>,
   "queryFn"
 > & {
-  queryFn: (state: TableQueryQueryState) => Promise<TableData<T>>;
+  queryFn: (
+    state: TableQueryQueryState,
+    ctx: QueryFunctionContext
+  ) => Promise<TableData<T>>;
 };
 
-type TableColumnStats<T> = {
+export type TableColumnStats<T> = {
   values: T[];
   valuesTotal: number;
-  min: T;
-  max: T;
+  min?: T;
+  max?: T;
+};
+
+export type TableColumnStatsInput<T extends EntityItem, C = keyof T> = {
+  column: C;
+  pagination: Required<Pick<TablePaginationConfig, "current" | "pageSize">>;
 };
 
 export type TableColumnStatsQuery<
   T extends EntityItem,
-  C = keyof T,
   V = any, // = T[C]
 > = Omit<
   UseQueryOptions<TableColumnStats<V>, Error, TableColumnStats<V>, QueryKey>,
   "queryFn"
 > & {
-  queryFn: (input: {
-    column: C;
-    pagination: Required<Pick<TablePaginationConfig, "current" | "pageSize">>;
-  }) => Promise<TableColumnStats<V>>;
+  queryFn: (input: TableColumnStatsInput<T>) => Promise<TableColumnStats<V>>;
 };
 
 export type QueryTableProps<T extends EntityItem> = Omit<
@@ -96,8 +105,8 @@ export const QueryTable = <T extends AnyObject>({
   const { queryFn, queryKey, ...restQuery } = query;
   const { data, isFetching, error, refetch } = useQuery({
     queryKey: [...queryKey, state, search],
-    queryFn: async () => {
-      return queryFn({ ...state, search });
+    queryFn: async (ctx) => {
+      return queryFn({ ...state, search }, ctx);
     },
     placeholderData: (data) => data,
     ...restQuery,

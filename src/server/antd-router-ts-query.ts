@@ -1,7 +1,14 @@
 import { resolveOptionalThunkAsync, ThunkAsync } from "ts-thunk";
 
 import { Cond, Fn, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
-import dayjs from "dayjs";
+import {
+  buildAntdColumnStatsQuery,
+  buildAntdTableQuery,
+} from "../helpers/antd-query-builder";
+import {
+  TableColumnStatsInput,
+  TableQueryQueryState,
+} from "../ui/data-display/QueryTable";
 import { createAntdRoutes } from "./antd-router";
 import { RunQueriesHandler } from "./types";
 
@@ -33,64 +40,14 @@ export const createAntdTsQueryRoutes = <T>({
   runQueries,
 }: CreateAntdTsQueryRouteOptions) => {
   return createAntdRoutes<T>({
-    tableHandlerFn: async (input) => {
-      const { pagination, sorter, filters, columns, search } = input;
-
+    tableHandlerFn: async (state) => {
       let sourceQuery = Q.select().from(
         (await resolveOptionalThunkAsync(defaultQuery)) ??
           Q.select().from(tableName)
       );
-
-      for (const [field, values] of Object.entries(filters)) {
-        if (values === null || values.length === 0) {
-          continue;
-        }
-        // TODO: handle range filters better than length === 2 with specific value types (eg. introduce >, <, >=, <= for filtering)
-        if (
-          values.length === 2 &&
-          typeof values[0] === "number" &&
-          typeof values[1] === "number"
-        ) {
-          sourceQuery = sourceQuery.where(
-            Cond.between(field, values as [number, number])
-          );
-        } else if (
-          values.length === 2 &&
-          typeof values[0] === "string" &&
-          dayjs(values[0]).isValid() &&
-          typeof values[1] === "string" &&
-          dayjs(values[1]).isValid()
-        ) {
-          sourceQuery = sourceQuery.where(
-            Cond.between(field, values as [string, string])
-          );
-        } else {
-          sourceQuery = sourceQuery.where(Cond.in(field, values));
-        }
-      }
-
-      if (search && columns) {
-        sourceQuery = sourceQuery.where(getSearchConditions(columns, search));
-      }
-
-      let query = sourceQuery
-        .limit(pagination.pageSize)
-        .offset((pagination.current - 1) * pagination.pageSize);
-
-      if (columns) {
-        query = query.addField("id");
-        for (const column of columns) {
-          query = query.addField(column);
-        }
-      }
-      for (const { field, order } of sorter) {
-        query = query.orderBy(field, order === "ascend" ? "ASC" : "DESC");
-      }
-
-      const [results, count] = await runQueries<T>([
-        query,
-        Q.select().from(sourceQuery).addField(Fn.count("*"), "total"),
-      ]);
+      const [results, count] = await runQueries<T>(
+        buildAntdTableQuery(sourceQuery, state as TableQueryQueryState)
+      );
       return {
         items: results?.results ?? [],
         total: (count?.results[0] as { total?: number }).total ?? 0,
@@ -135,37 +92,35 @@ export const createAntdTsQueryRoutes = <T>({
         total: (count?.results[0] as { total?: number }).total ?? 0,
       };
     },
-    columnStatsHandlerFn: async ({ column, pagination }) => {
+    columnStatsHandlerFn: async (input) => {
       const selectQuery = Q.select().from(
         (await resolveOptionalThunkAsync(defaultQuery)) ??
-          Q.select().from(tableName).addField(column)
+          Q.select().from(tableName).addField(input.column)
       );
 
-      let query = Q.select()
-        .from(selectQuery)
-        .addField(column, "value")
-        .groupBy(column)
-        .orderBy(column);
+      // let query = Q.select()
+      //   .from(selectQuery)
+      //   .addField(column, "value")
+      //   .groupBy(column)
+      //   .orderBy(column);
 
-      const queryWithoutPagination = query;
-      if (pagination) {
-        query = query
-          .limit(pagination.pageSize)
-          .offset((pagination.current - 1) * pagination.pageSize);
-      } else {
-        query = query.limit(100);
-      }
+      // const queryWithoutPagination = query;
+      // if (pagination) {
+      //   query = query
+      //     .limit(pagination.pageSize)
+      //     .offset((pagination.current - 1) * pagination.pageSize);
+      // } else {
+      //   query = query.limit(100);
+      // }
 
       const [results, count, minMax] = await runQueries<{
         value: unknown;
-      }>([
-        query,
-        Q.select().from(queryWithoutPagination).addField("count(*)", "total"),
-        Q.select()
-          .from(queryWithoutPagination)
-          .addField(Fn.min("value"), "min")
-          .addField(Fn.max("value"), "max"),
-      ]);
+      }>(
+        buildAntdColumnStatsQuery(
+          selectQuery,
+          input as TableColumnStatsInput<any>
+        )
+      );
 
       const { min, max } =
         (minMax?.results[0] as { min?: unknown; max?: unknown }) ?? {};
