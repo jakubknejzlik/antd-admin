@@ -104,12 +104,7 @@ async function fetchColumnStats<T extends AnyObject>(
     const [results, count, minMax] = res.data.results;
 
     const { min, max } = (minMax?.[0] as { min?: T; max?: T }) ?? {};
-    console.log("?????", {
-      values: results?.map((item) => item["value"]) ?? [],
-      valuesTotal: (count?.[0] as { total?: number }).total ?? 0,
-      min,
-      max,
-    });
+
     return {
       values: results?.map((item) => item["value"]) ?? [],
       valuesTotal: (count?.[0] as { total?: number }).total ?? 0,
@@ -126,7 +121,7 @@ export const EntityList = <T extends EntityItem, S extends OptionType>({
   ...props
 }: EntityListProps<T, S>) => {
   const { list, dataSource } = entity.config;
-  const { query, columnStatsQuery, buttons, columns, ...rest } = list;
+  const { query, columnStatsQuery, buttons, columns, ...rest } = list ?? {};
   const queryClient = useQueryClient();
 
   const listQueryFn = dataSource.listQueryFn;
@@ -169,14 +164,14 @@ export const EntityList = <T extends EntityItem, S extends OptionType>({
         buttons={buttons}
         deleteMutationFn={deleteMutationFn}
         columns={
-          visibleColumns === undefined
+          (visibleColumns === undefined
             ? columns
-            : columns.filter(
+            : columns?.filter(
                 (col) =>
                   col.key &&
                   (col.key === "buttons" ||
                     visibleColumns.includes(col.key.toString()))
-              )
+              )) ?? []
         }
         {...rest}
         {...props}

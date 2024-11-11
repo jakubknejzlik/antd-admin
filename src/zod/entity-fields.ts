@@ -5,7 +5,8 @@ import { EntityField } from "../ui/entity/entity-fields";
 export function getEntityFieldsFromSchema<
   U extends AnyZodObject,
   T extends AnyObject = z.infer<U>,
->(schema: U): EntityField<T>[] {
+  K = keyof T,
+>(schema: U, fieldNames?: K[]): EntityField<T>[] {
   const getFieldType = (field: ZodTypeAny): EntityField<T>["type"] => {
     if (field instanceof z.ZodString) {
       return "string";
@@ -31,8 +32,39 @@ export function getEntityFieldsFromSchema<
     return !field.isNullable() && !field.isOptional();
   };
   const shape = schema.shape as ZodRawShape;
-  const fields: EntityField<T>[] = Object.entries(shape)
-    .map(([name, field]) => {
+  // const fieldsMap: Record<K, EntityField<T>> = {};
+
+  // for (const [name, field] of Object.entries(shape)) {
+  //   const _field = shape[name]
+  //   const zodField = field as ZodTypeAny;
+  //   const type = getFieldType(zodField);
+  //   const required = isRequired(zodField);
+  //   if (field instanceof z.ZodReadonly) {
+  //     continue;
+  //   }
+  //   const f = {
+  //     name,
+  //     label: name,
+  //     type,
+  //     required,
+  //     validationRules: [
+  //       {
+  //         validator: async (_, value) => {
+  //           const result = zodField.safeParse(value);
+  //           if (result.error) {
+  //             return Promise.reject(
+  //               result.error.errors.map((e) => e.message).join(", ")
+  //             );
+  //           }
+  //         },
+  //       },
+  //     ],
+  //   } as EntityField<T>;
+  //   fieldsMap[name as K] = f;
+  // }
+  const fields: EntityField<T>[] = (fieldNames ?? Object.keys(shape))
+    .map((name) => {
+      const field = shape[name as string];
       const zodField = field as ZodTypeAny;
       const type = getFieldType(zodField);
       const required = isRequired(zodField);

@@ -1,6 +1,7 @@
 import { QueryKey } from "@tanstack/react-query";
 import { LinkProps } from "@tanstack/react-router";
 import { Alert } from "antd";
+import { TableColumnStatsQuery } from "../data-display/QueryTable";
 import { QueryTableWithButtonsProps } from "../data-display/QueryTableWithButtons";
 import {
   OptionType,
@@ -11,9 +12,8 @@ import { EntityItem } from "../types/shared";
 import { EntityCreatePage, EntityCreatePageProps } from "./EntityCreatePage";
 import { EntityListPage, EntityListPageProps } from "./EntityListPage";
 import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
-import { EntityField } from "./entity-fields";
-import { TableColumnStatsQuery } from "../data-display/QueryTable";
 import { EntityDataSource } from "./entity-datasource";
+import { EntityField } from "./entity-fields";
 
 type EntityListConfig<T extends EntityItem> = Omit<
   QueryTableWithButtonsProps<T>,
@@ -26,9 +26,9 @@ type EntityListConfig<T extends EntityItem> = Omit<
 export type EntityConfig<T extends EntityItem, S extends OptionType> = {
   name: string;
   rootRoute: LinkProps;
-  list: EntityListConfig<T>;
   dataSource: EntityDataSource<T>;
   select?: QuerySelectProps<S>;
+  list?: EntityListConfig<T>;
 };
 
 export class Entity<T extends EntityItem, S extends OptionType = any> {
