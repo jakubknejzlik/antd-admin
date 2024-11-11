@@ -41,14 +41,14 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
             queryKey: [name, "get", { id }],
             queryFn: getQueryFn
               ? () => {
-                  return getQueryFn(id);
+                  return getQueryFn({ id });
                 }
               : undefined,
           }}
           mutation={{
             mutationFn: updateMutationFn
               ? async (values) => {
-                  return updateMutationFn(id, values);
+                  return updateMutationFn({ ...values, id });
                 }
               : undefined,
             onSuccess: async () => {

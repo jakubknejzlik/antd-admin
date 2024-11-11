@@ -7,9 +7,9 @@ export interface EntityDataSource<T extends EntityItem> {
   listColumnStatsQueryFn?: TableColumnStatsQuery<T>["queryFn"];
   crud?: {
     listQueryFn?: () => Promise<T[]>;
-    getQueryFn?: (id: string) => Promise<T | null>;
+    getQueryFn?: (v: { id: string }) => Promise<T | null>;
     createMutationFn?: (values: T) => Promise<T>;
-    updateMutationFn?: (id: string, values: T) => Promise<T>;
+    updateMutationFn?: (values: T & { id: string }) => Promise<T>;
     deleteMutationFn?: (item: T) => Promise<unknown>;
   };
 }
