@@ -1,6 +1,6 @@
 import { resolveOptionalThunkAsync, ThunkAsync } from "ts-thunk";
 
-import { Cond, Fn, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
+import { Cond, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
 import {
   buildAntdColumnStatsQuery,
   buildAntdTableQuery,
