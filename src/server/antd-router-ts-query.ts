@@ -9,15 +9,15 @@ import {
   TableColumnStatsInput,
   TableQueryQueryState,
 } from "../ui/data-display/QueryTable";
-import { createAntdRoutes } from "./antd-router";
+import { CreateAntdRouteOptions, createAntdRoutes } from "./antd-router";
 import { RunQueriesHandler } from "./types";
 
-type CreateAntdTsQueryRouteOptions = {
+type CreateAntdTsQueryRouteOptions<T> = {
   tableName: string;
   defaultQuery?: ThunkAsync<SelectQuery>;
   defaultSelectQuery?: ThunkAsync<SelectQuery>;
   runQueries: RunQueriesHandler;
-};
+} & CreateAntdRouteOptions<T>;
 
 const getSearchConditions = (columns: string[], search: string) => {
   const parts = search.split(" ");
@@ -38,7 +38,7 @@ export const createAntdTsQueryRoutes = <T>({
   defaultQuery,
   defaultSelectQuery,
   runQueries,
-}: CreateAntdTsQueryRouteOptions) => {
+}: CreateAntdTsQueryRouteOptions<T>) => {
   return createAntdRoutes<T>({
     tableHandlerFn: async (state) => {
       let sourceQuery = Q.select().from(

@@ -44,7 +44,7 @@ const ColumnStatsInputSchema = z.object({
   pagination: PaginationSchema.optional(),
 });
 
-type CreateAntdRouteOptions<T> = {
+export type CreateAntdRouteOptions<T> = {
   middleware?: AnyMiddlewareBuilder;
   tableHandlerFn?: (
     query: z.infer<typeof TableInputSchema>

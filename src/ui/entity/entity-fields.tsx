@@ -1,4 +1,4 @@
-import { Input, InputNumber, Switch } from "antd";
+import { Input, InputNumber, Select, SelectProps, Switch } from "antd";
 import { Rule } from "antd/es/form";
 import { RawDatePicker } from "../data-entry/RawDatePicker";
 import { EntityItem } from "../types/shared";
@@ -29,13 +29,19 @@ export type EntitySelectField<T> = EntityFieldBase<T> & {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   targetEntity: () => Entity<any, any>;
 };
+export type EntityEnumField<T> = EntityFieldBase<T> & {
+  type: "enum";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  options: SelectProps["options"];
+};
 
 export type EntityField<T extends EntityItem> =
   | EntityStringField<T>
   | EntityNumberField<T>
   | EntityDateField<T>
   | EntityBooleanField<T>
-  | EntitySelectField<T>;
+  | EntitySelectField<T>
+  | EntityEnumField<T>;
 
 export const inputForField = <T extends EntityItem>(field: EntityField<T>) => {
   switch (field.type) {
@@ -47,6 +53,8 @@ export const inputForField = <T extends EntityItem>(field: EntityField<T>) => {
       return <Switch />;
     case "select":
       return field.targetEntity().getSelectComponent();
+    case "enum":
+      return <Select options={field.options} />;
     default:
     case "string":
       return <Input />;
