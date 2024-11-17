@@ -59,7 +59,9 @@ export const columnTypeForTableColumnType = <RecordType extends EntityItem>(
     sorter: true,
     sortOrder: state.sorter.find((s) => s.field === c.dataIndex)?.order,
     showSorterTooltip: false,
-    filteredValue: c.dataIndex ? state.filters[c.dataIndex.toString()] : [],
+    filteredValue: c.dataIndex
+      ? state.filters[c.dataIndex.toString()] || null
+      : null,
     filterDropdown: (props) => {
       const { selectedKeys, setSelectedKeys } = props;
       return (
