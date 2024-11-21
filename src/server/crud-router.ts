@@ -15,7 +15,7 @@ export type CreateCrudRouteOptions<
   schema: S;
   defaultValues?: () => Promise<Partial<T>>;
   onCreate?: (value: T) => Promise<void>;
-  onUpdate?: (value: T) => Promise<void>;
+  onUpdate?: (value: T, prev?: T) => Promise<void>;
   onDelete?: (value: T) => Promise<void>;
 };
 
@@ -110,7 +110,10 @@ export const createCrudRoutes = <
             message: "No fields to update",
           });
         }
-        const result = await updateHandlerFn({ id, ...input } as {
+
+        const _id = id as string;
+        const item = id && (await getHandlerFn?.({ id: _id }));
+        const result = await updateHandlerFn({ id: _id, ...input } as {
           id: string;
         } & Partial<Omit<T, "id">>);
         if (!result) {
@@ -120,7 +123,7 @@ export const createCrudRoutes = <
           });
         }
         if (onUpdate) {
-          await onUpdate(result as T);
+          await onUpdate(result as T, item as T);
         }
         return result as T;
       }),
