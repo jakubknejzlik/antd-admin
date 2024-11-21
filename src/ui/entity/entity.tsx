@@ -14,6 +14,7 @@ import { EntityListPage, EntityListPageProps } from "./EntityListPage";
 import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
 import { EntityDataSource } from "./entity-datasource";
 import { EntityField } from "./entity-fields";
+import { EntityList } from "./EntityList";
 
 type EntityListConfig<T extends EntityItem> = Omit<
   QueryTableWithButtonsProps<T>,
@@ -76,6 +77,10 @@ export class Entity<T extends EntityItem, S extends OptionType = any> {
       clone.fields.push(field);
     }
     return clone;
+  }
+
+  public getList(props?: Omit<EntityListPageProps<T, S>, "entity">) {
+    return <EntityList entity={this} {...props} />;
   }
 
   public getListPage(props?: Omit<EntityListPageProps<T, S>, "entity">) {
