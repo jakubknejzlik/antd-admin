@@ -21,7 +21,6 @@ export const createTsQueryCrudRoutes = <
 >({
   tableName,
   defaultSelect = Q.select().from(tableName),
-  defaultValues,
   runQueries,
   ...rest
 }: CreateTsQueryCrudRouteOptions<S, T>) => {
@@ -45,7 +44,8 @@ export const createTsQueryCrudRoutes = <
       );
     },
     createHandlerFn: async ({ ...input }) => {
-      const values = { ...(await defaultValues?.()), ...input };
+      const values = { ...input };
+
       await runQueryFirst(Q.insert(tableName).values([values]));
 
       const res = await runQueryFirst(

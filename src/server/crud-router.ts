@@ -14,6 +14,7 @@ export type CreateCrudRouteOptions<
   middleware?: AnyMiddlewareBuilder;
   schema: S;
   defaultValues?: () => Promise<Partial<T>>;
+  transformValues?: (values: Partial<T>) => Promise<Partial<T>>;
   onCreate?: (value: T) => Promise<void>;
   onUpdate?: (value: T, prev?: T) => Promise<void>;
   onDelete?: (value: T) => Promise<void>;
@@ -39,6 +40,7 @@ export const createCrudRoutes = <
   T extends z.infer<S>,
 >({
   defaultValues,
+  transformValues,
   listHandlerFn,
   getHandlerFn,
   createHandlerFn,
@@ -88,8 +90,9 @@ export const createCrudRoutes = <
             message: "handler not implemented",
           });
         }
-        const values = { ...(await defaultValues?.()), ...input };
-        const res = await createHandlerFn(values as Omit<T, "id">);
+        const values = { ...(await defaultValues?.()), ...input } as Partial<T>;
+        const transformedValues = (await transformValues?.(values)) ?? values;
+        const res = await createHandlerFn(transformedValues as Omit<T, "id">);
         if (onCreate) {
           await onCreate(res);
         }
@@ -113,7 +116,16 @@ export const createCrudRoutes = <
 
         const _id = id as string;
         const item = id && (await getHandlerFn?.({ id: _id }));
-        const result = await updateHandlerFn({ id: _id, ...input } as {
+        const transformedValues =
+          (await transformValues?.({
+            id: _id,
+            ...input,
+          } as unknown as Partial<T>)) ?? input;
+
+        const result = await updateHandlerFn({
+          id: _id,
+          ...transformedValues,
+        } as {
           id: string;
         } & Partial<Omit<T, "id">>);
         if (!result) {
