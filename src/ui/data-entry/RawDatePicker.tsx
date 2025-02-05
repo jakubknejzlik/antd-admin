@@ -16,7 +16,7 @@ export const RawDatePicker = ({
   return (
     <DatePicker
       value={val && val.isValid() ? val : null}
-      onChange={(val) => onChange?.(val?.toDate())}
+      onChange={(val) => onChange?.(val?.toDate() ?? null)}
       {...props}
     />
   );
