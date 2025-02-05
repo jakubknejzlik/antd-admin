@@ -15,7 +15,7 @@ export type CreateCrudRouteOptions<
   schema: S;
   defaultValues?: () => Promise<Partial<T>>;
   transformValues?: (values: Partial<T>) => Promise<Partial<T>>;
-  onCreate?: (value: T) => Promise<void>;
+  onCreate?: (value: T, ctx: any) => Promise<void>;
   onUpdate?: (value: T, prev?: T) => Promise<void>;
   onDelete?: (value: T) => Promise<void>;
 };
@@ -53,6 +53,7 @@ export const createCrudRoutes = <
   middleware,
 }: CreateCrudRouteOptions<S, T> & CreateCrudRouteHandlers<S, T>) => {
   const procedure = middleware ? t.procedure.use(middleware) : t.procedure;
+
   return {
     list: procedure.query(async () => {
       if (!listHandlerFn) {
@@ -83,7 +84,7 @@ export const createCrudRoutes = <
       }),
     create: procedure
       .input(schema.omit({ id: true }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         if (!createHandlerFn) {
           throw new TRPCError({
             code: "NOT_IMPLEMENTED",
@@ -94,7 +95,7 @@ export const createCrudRoutes = <
         const transformedValues = (await transformValues?.(values)) ?? values;
         const res = await createHandlerFn(transformedValues as Omit<T, "id">);
         if (onCreate) {
-          await onCreate(res);
+          await onCreate(res, ctx);
         }
         return res;
       }),
@@ -138,6 +139,66 @@ export const createCrudRoutes = <
           await onUpdate(result as T, item as T);
         }
         return result as T;
+      }),
+    createOrUpdate: procedure
+      .input(schema.omit({ id: true }).partial().extend({ id: z.string() }))
+      .mutation(async ({ input: { id, ...input }, ctx }) => {
+        if (Object.keys(input).length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "No fields to create or update",
+          });
+        }
+
+        const _id = id as string;
+        const item = id && (await getHandlerFn?.({ id: _id }));
+        if (!item) {
+          if (!createHandlerFn) {
+            throw new TRPCError({
+              code: "NOT_IMPLEMENTED",
+              message: "create handler not implemented",
+            });
+          }
+          const values = {
+            ...(await defaultValues?.()),
+            ...input,
+          } as Partial<T>;
+          const transformedValues = (await transformValues?.(values)) ?? values;
+          const res = await createHandlerFn(transformedValues as Omit<T, "id">);
+          if (onCreate) {
+            await onCreate(res, ctx);
+          }
+          return res;
+        } else {
+          if (!updateHandlerFn) {
+            throw new TRPCError({
+              code: "NOT_IMPLEMENTED",
+              message: "update handler not implemented",
+            });
+          }
+          const transformedValues =
+            (await transformValues?.({
+              id: _id,
+              ...input,
+            } as unknown as Partial<T>)) ?? input;
+
+          const result = await updateHandlerFn({
+            id: _id,
+            ...transformedValues,
+          } as {
+            id: string;
+          } & Partial<Omit<T, "id">>);
+          if (!result) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Record not found",
+            });
+          }
+          if (onUpdate) {
+            await onUpdate(result as T, item as T);
+          }
+          return result as T;
+        }
       }),
     delete: procedure.input(detailInputSchema).mutation(async ({ input }) => {
       if (!deleteHandlerFn) {
