@@ -5,18 +5,20 @@ import {
   TableQueryQueryState,
 } from "../ui/data-display/QueryTable";
 
-const getSearchConditions = (columns: string[], search: string) => {
+export const getSearchConditions = (columns: string[], search: string) => {
   const parts = search.split(" ");
-  const or = [];
+  const and = [];
   for (const part of parts) {
+    const or = [];
     for (const column of columns) {
       or.push(Cond.like(column, `${part}%`));
       or.push(Cond.like(column, `% ${part}%`));
       or.push(Cond.like(column, `%-${part}%`));
       or.push(Cond.like(column, `%_${part}%`));
     }
+    and.push(Cond.or(or));
   }
-  return Cond.or(or);
+  return Cond.and(and);
 };
 
 export const buildAntdTableQuery = (

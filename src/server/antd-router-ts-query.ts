@@ -1,9 +1,10 @@
 import { resolveOptionalThunkAsync, ThunkAsync } from "ts-thunk";
 
-import { Cond, Q, SelectQuery } from "@jakub.knejzlik/ts-query";
+import { Q, SelectQuery } from "@jakub.knejzlik/ts-query";
 import {
   buildAntdColumnStatsQuery,
   buildAntdTableQuery,
+  getSearchConditions,
 } from "../helpers/antd-query-builder";
 import {
   TableColumnStatsInput,
@@ -18,20 +19,6 @@ type CreateAntdTsQueryRouteOptions<T> = {
   defaultSelectQuery?: ThunkAsync<SelectQuery>;
   runQueries: RunQueriesHandler;
 } & CreateAntdRouteOptions<T>;
-
-const getSearchConditions = (columns: string[], search: string) => {
-  const parts = search.split(" ");
-  const or = [];
-  for (const part of parts) {
-    for (const column of columns) {
-      or.push(Cond.like(column, `${part}%`));
-      or.push(Cond.like(column, `% ${part}%`));
-      or.push(Cond.like(column, `%-${part}%`));
-      or.push(Cond.like(column, `%_${part}%`));
-    }
-  }
-  return Cond.or(or);
-};
 
 export const createAntdTsQueryRoutes = <T>({
   tableName,
@@ -50,6 +37,7 @@ export const createAntdTsQueryRoutes = <T>({
       const [results, count] = await runQueries<T>(
         buildAntdTableQuery(sourceQuery, state as TableQueryQueryState)
       );
+
       return {
         items: results?.results ?? [],
         total: (count?.results[0] as { total?: number }).total ?? 0,
