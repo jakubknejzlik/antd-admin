@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Card, CardProps, Form } from "antd";
-import { QueryForm } from "../data-entry/QueryForm";
+import { QueryForm, QueryFormProps } from "../data-entry/QueryForm";
 import { OptionType } from "../data-entry/QuerySelect";
 import { Page } from "../layout";
 import { EntityItem } from "../types/shared";
@@ -14,12 +14,14 @@ export type EntityCreatePageProps<
   entity: Entity<T, S>;
   fields?: EntityField<T>[];
   card?: Partial<CardProps>;
+  form?: Partial<QueryFormProps<T>>;
 };
 
 export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
   entity,
   fields,
   card,
+  form,
 }: EntityCreatePageProps<T, S>) => {
   const { name, rootRoute, dataSource } = entity.config;
   const _fields = fields ?? entity.fields;
@@ -34,6 +36,7 @@ export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
               navigate(rootRoute);
             },
           }}
+          {...form}
         >
           {_fields.map((field) => (
             <Form.Item
