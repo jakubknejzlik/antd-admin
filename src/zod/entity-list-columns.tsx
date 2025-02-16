@@ -3,7 +3,6 @@ import { QueryTableColumns } from "../ui/data-display/QueryTable";
 import { TableColumnType } from "../ui/data-display/QueryTableColumns";
 import { EntityField } from "../ui/entity/entity-fields";
 import { EntityItem } from "../ui/types/shared";
-import { Tooltip } from "antd";
 
 type ColumnKeyObject<T extends EntityItem, U extends AnyZodObject> = {
   dataIndex: keyof U["shape"];
@@ -12,8 +11,6 @@ type ColumnKeyObject<T extends EntityItem, U extends AnyZodObject> = {
 type ColumnKey<T extends EntityItem, U extends AnyZodObject> =
   | keyof U["shape"]
   | ColumnKeyObject<T, U>;
-
-const maxColumnLength = 50;
 
 export function getEntityListColumnsFromSchema<
   T extends EntityItem,
@@ -57,16 +54,6 @@ export function getEntityListColumnsFromSchema<
         type,
         key: _k.dataIndex,
         title: _k.dataIndex,
-        render: (value) => {
-          if (typeof value === "string" && value.length > maxColumnLength) {
-            return (
-              <Tooltip title={value}>
-                {value.slice(0, maxColumnLength) + "..."}
-              </Tooltip>
-            );
-          }
-          return value;
-        },
         ..._k,
       } as QueryTableColumns<T>;
     })

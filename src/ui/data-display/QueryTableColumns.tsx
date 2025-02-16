@@ -9,6 +9,9 @@ import { NumberColumnFilterDropdown } from "./filter-dropdowns/NumberColumnFilte
 import { StringColumnFilterDropdown } from "./filter-dropdowns/StringColumnFilterDropdown";
 import { QueryTableState, TableColumnStatsQuery } from "./QueryTable";
 import { DateColumnFilterDropdown } from "./filter-dropdowns/DateColumnFilterDropdown";
+import { Tooltip } from "antd";
+
+const MAX_COLUMN_LENGTH = 50;
 
 type ColumnBase<RecordType> = ColumnType<RecordType>;
 type StringColumnType<RecordType> = ColumnBase<RecordType> & {
@@ -115,6 +118,16 @@ export const columnTypeForTableColumnType = <RecordType extends EntityItem>(
     case "string":
       return {
         ...defaultProps,
+        render: (value) => {
+          if (typeof value === "string" && value.length > MAX_COLUMN_LENGTH) {
+            return (
+              <Tooltip title={value}>
+                {value.slice(0, MAX_COLUMN_LENGTH) + "..."}
+              </Tooltip>
+            );
+          }
+          return value;
+        },
         ...c,
       };
     case "date":
