@@ -40,6 +40,11 @@ export const UserAuthGateway = ({
         status="403"
         title="Unauthorized"
         subTitle={userData.error.message}
+        extra={
+          <Button type="primary" onClick={signOut}>
+            Logout
+          </Button>
+        }
       />
     );
   }
