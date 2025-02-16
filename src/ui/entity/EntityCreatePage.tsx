@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { LinkComponentProps, useNavigate } from "@tanstack/react-router";
 import { Card, CardProps, Form } from "antd";
 import { QueryForm, QueryFormProps } from "../data-entry/QueryForm";
 import { OptionType } from "../data-entry/QuerySelect";
@@ -15,6 +15,7 @@ export type EntityCreatePageProps<
   fields?: EntityField<T>[];
   card?: Partial<CardProps>;
   form?: Partial<QueryFormProps<T>>;
+  onSaveLink: LinkComponentProps;
 };
 
 export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
@@ -22,8 +23,9 @@ export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
   fields,
   card,
   form,
+  onSaveLink,
 }: EntityCreatePageProps<T, S>) => {
-  const { name, rootRoute, dataSource } = entity.config;
+  const { name, dataSource } = entity.config;
   const _fields = fields ?? entity.fields;
   const navigate = useNavigate();
   return (
@@ -33,7 +35,7 @@ export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
           mutation={{
             mutationFn: dataSource.crud?.createMutationFn,
             onSuccess: () => {
-              navigate(rootRoute);
+              navigate(onSaveLink);
             },
           }}
           {...form}

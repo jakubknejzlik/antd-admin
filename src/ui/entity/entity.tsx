@@ -1,5 +1,4 @@
 import { QueryKey } from "@tanstack/react-query";
-import { LinkProps } from "@tanstack/react-router";
 import { Alert } from "antd";
 import { TableColumnStatsQuery } from "../data-display/QueryTable";
 import { QueryTableWithButtonsProps } from "../data-display/QueryTableWithButtons";
@@ -9,12 +8,12 @@ import {
   QuerySelectProps,
 } from "../data-entry/QuerySelect";
 import { EntityItem } from "../types/shared";
-import { EntityCreatePage, EntityCreatePageProps } from "./EntityCreatePage";
-import { EntityListPage, EntityListPageProps } from "./EntityListPage";
-import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
 import { EntityDataSource } from "./entity-datasource";
 import { EntityField } from "./entity-fields";
+import { EntityCreatePage, EntityCreatePageProps } from "./EntityCreatePage";
 import { EntityList } from "./EntityList";
+import { EntityListPage, EntityListPageProps } from "./EntityListPage";
+import { EntityUpdatePage, EntityUpdatePageProps } from "./EntityUpdatePage";
 
 type EntityListConfig<T extends EntityItem> = Omit<
   QueryTableWithButtonsProps<T>,
@@ -26,7 +25,6 @@ type EntityListConfig<T extends EntityItem> = Omit<
 
 export type EntityConfig<T extends EntityItem, S extends OptionType> = {
   name: string;
-  rootRoute: LinkProps;
   dataSource: EntityDataSource<T>;
   select?: QuerySelectProps<S>;
   list?: EntityListConfig<T>;
@@ -91,13 +89,13 @@ export class Entity<T extends EntityItem, S extends OptionType = any> {
     return [this.config.name, "list"];
   }
 
-  public getCreatePage(props?: Omit<EntityCreatePageProps<T, S>, "entity">) {
+  public getCreatePage(props: Omit<EntityCreatePageProps<T, S>, "entity">) {
     return <EntityCreatePage entity={this} {...props} />;
   }
 
   public getUpdatePage(
     id: string,
-    props?: Omit<EntityUpdatePageProps<T, S>, "entity" | "id">
+    props: Omit<EntityUpdatePageProps<T, S>, "entity" | "id">
   ) {
     return <EntityUpdatePage id={id} entity={this} {...props} />;
   }

@@ -1,5 +1,5 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Link } from "@tanstack/react-router";
+import { Link, LinkComponentProps } from "@tanstack/react-router";
 import { Button, Card, CardProps, Space } from "antd";
 import { useState } from "react";
 import { OptionType } from "../data-entry/QuerySelect";
@@ -15,6 +15,7 @@ export type EntityListPageProps<
 > = EntityListProps<T, S> & {
   entity: Entity<T, S>;
   card?: Partial<CardProps>;
+  createLink?: LinkComponentProps;
 };
 
 type EntityListPageState = { search?: string };
@@ -22,13 +23,13 @@ type EntityListPageState = { search?: string };
 export const EntityListPage = <T extends EntityItem, S extends OptionType>({
   entity,
   card,
+  createLink,
   ...props
 }: EntityListPageProps<T, S>) => {
   const [state, setState] = useState<EntityListPageState>({});
-  const { name, rootRoute } = entity.config;
+  const { name } = entity.config;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rootPath = rootRoute.to as any;
   const { extra, ...cardProps } = card ?? {};
   return (
     <Page>
@@ -41,8 +42,8 @@ export const EntityListPage = <T extends EntityItem, S extends OptionType>({
               value={state.search}
               onChange={(search) => setState((state) => ({ ...state, search }))}
             />
-            {entity.canCreate() && (
-              <Link from={rootPath} to={"./new" as string}>
+            {entity.canCreate() && createLink && (
+              <Link {...createLink}>
                 <Button icon={<PlusOutlined />} />
               </Link>
             )}

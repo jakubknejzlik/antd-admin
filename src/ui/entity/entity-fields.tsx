@@ -14,6 +14,7 @@ export type EntityFieldBase<T> = {
 };
 export type EntityStringField<T> = EntityFieldBase<T> & {
   type: "string";
+  maxLength?: number;
 };
 export type EntityNumberField<T> = EntityFieldBase<T> & {
   type: "number";

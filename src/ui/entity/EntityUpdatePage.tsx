@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { LinkComponentProps, useNavigate } from "@tanstack/react-router";
 import { Card, CardProps, Form } from "antd";
 import { QueryEditForm, QueryEditFormProps } from "../data-entry/QueryEditForm";
 import { OptionType } from "../data-entry/QuerySelect";
@@ -16,6 +16,7 @@ export type EntityUpdatePageProps<
   entity: Entity<T, S>;
   fields?: EntityField<T>[];
   card?: Partial<CardProps>;
+  onSaveLink: LinkComponentProps;
 };
 
 export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
@@ -23,9 +24,10 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
   entity,
   fields,
   card,
+  onSaveLink,
   ...props
 }: EntityUpdatePageProps<T, S>) => {
-  const { name, rootRoute, dataSource } = entity.config;
+  const { name, dataSource } = entity.config;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const _fields = fields ?? entity.fields;
@@ -53,9 +55,9 @@ export const EntityUpdatePage = <T extends EntityItem, S extends OptionType>({
               : undefined,
             onSuccess: async () => {
               await queryClient.invalidateQueries({
-                queryKey: [rootRoute.to, "list"],
+                queryKey: [name, "list"],
               });
-              navigate(rootRoute);
+              navigate(onSaveLink);
             },
           }}
           {...props}
