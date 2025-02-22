@@ -1,5 +1,5 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Link, LinkComponentProps } from "@tanstack/react-router";
+import { Link, ToOptions } from "@tanstack/react-router";
 import { Button, Card, CardProps, Space } from "antd";
 import { useState } from "react";
 import { OptionType } from "../data-entry/QuerySelect";
@@ -15,7 +15,7 @@ export type EntityListPageProps<
 > = EntityListProps<T, S> & {
   entity: Entity<T, S>;
   card?: Partial<CardProps>;
-  createLink?: LinkComponentProps;
+  createLink?: ToOptions;
 };
 
 type EntityListPageState = { search?: string };

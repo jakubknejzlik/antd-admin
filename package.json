@@ -9,7 +9,7 @@
     "vitest": "^2.0.5"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.60.5",
+    "@tanstack/react-query": "5.61.4",
     "@types/sql.js": "^1.4.9",
     "dayjs": "^1.11.12",
     "numeral": "^2.0.6",

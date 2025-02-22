@@ -1,4 +1,4 @@
-import { LinkComponentProps, useNavigate } from "@tanstack/react-router";
+import { ToOptions, useNavigate } from "@tanstack/react-router";
 import { Card, CardProps, Form } from "antd";
 import { QueryForm, QueryFormProps } from "../data-entry/QueryForm";
 import { OptionType } from "../data-entry/QuerySelect";
@@ -15,7 +15,7 @@ export type EntityCreatePageProps<
   fields?: EntityField<T>[];
   card?: Partial<CardProps>;
   form?: Partial<QueryFormProps<T>>;
-  onSaveLink: LinkComponentProps;
+  onSaveLink: ToOptions;
 };
 
 export const EntityCreatePage = <T extends EntityItem, S extends OptionType>({
