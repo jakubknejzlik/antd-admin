@@ -83,7 +83,9 @@ export const createCrudRoutes = <
         return result;
       }),
     create: procedure
-      .input(schema.omit({ id: true }))
+      .input(
+        schema.omit({ id: true }).merge(z.object({ id: z.string().optional() }))
+      )
       .mutation(async ({ input, ctx }) => {
         if (!createHandlerFn) {
           throw new TRPCError({
