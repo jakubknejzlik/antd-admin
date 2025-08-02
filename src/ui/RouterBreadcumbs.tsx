@@ -11,7 +11,7 @@ export const RouterBreadcumbs = () => {
     select: (state) => {
       return state.matches
         .map((match) => ({
-          title: match.meta?.find((tag) => tag.title)?.title as
+          title: match.meta?.find((tag) => tag?.title)?.title as
             | string
             | undefined,
           path: match.pathname,
